@@ -1091,32 +1091,41 @@ elif menu == "Alur & Proses Data":
         y_pred = model.predict(X_test)
         residuals = y_test - y_pred
         
-        # Scatter: Actual vs Predicted
-        fig_scatter = px.scatter(x=y_test, y=y_pred, opacity=0.5, template='plotly_dark')
-        fig_scatter.add_shape(type="line", line=dict(dash='dash', color='red'), x0=y_test.min(), y0=y_test.min(), x1=y_test.max(), y1=y_test.max())
-        fig_scatter.update_layout(xaxis_title="PM2.5 Aktual", yaxis_title="PM2.5 Prediksi")
+        # 1. Scatter: Actual vs Predicted
+        scatter_df = pd.DataFrame({'Aktual': y_test, 'Prediksi': y_pred})
+        fig_scatter = px.scatter(scatter_df, x='Aktual', y='Prediksi', opacity=0.5, template='plotly_dark')
+        fig_scatter.add_shape(type="line", line=dict(dash='dash', color='red'), x0=0, y0=0, x1=y_test.max(), y1=y_test.max())
         
-        # Residual Histogram
+        # 2. Residual Histogram
         fig_resid = px.histogram(x=residuals, nbins=50, template='plotly_dark')
-        fig_resid.update_layout(xaxis_title="Residu", yaxis_title="Frekuensi")
         
-        # Feature Importance yang lebih aman
+        # 3. Feature Importance (BAGIAN INI YANG DIPERBAIKI)
         try:
-            # Mencoba mengakses melalui nama langkah yang benar
+            # Mengakses preprocessor dan transformer
             preprocessor = model.named_steps['preprocessor']
+            # Ambil nama fitur dari transformer 'cat'
             ohe = preprocessor.named_transformers_['cat'].named_steps['ohe']
-            cat_cols = list(ohe.get_feature_names_out(['who_region']))
-            num_cols = ["year", "latitude", "longitude", "pm10_concentration", "no2_concentration", "number_of_stations", "who_ms", "population"]
-            feature_names = num_cols + cat_cols
+            
+            # Mendapatkan nama fitur kategorikal setelah OHE
+            if hasattr(ohe, 'get_feature_names_out'):
+                cat_feature_names = list(ohe.get_feature_names_out(CAT_COLS))
+            else:
+                cat_feature_names = list(ohe.get_feature_names(CAT_COLS))
+                
+            all_feature_names = NUM_COLS + cat_feature_names
             importances = model.named_steps['model'].feature_importances_
             
-            feat_df = pd.DataFrame({'Fitur': feature_names, 'Kepentingan': importances}).sort_values('Kepentingan', ascending=True).tail(8)
-            fig_feat = px.bar(feat_df, x='Kepentingan', y='Fitur', orientation='h', template='plotly_dark')
-        except:
-            # Jika gagal (karena struktur pipeline berbeda), tampilkan pesan sederhana
-            fig_feat = go.Figure().add_annotation(text="Feature Importance tidak tersedia", showarrow=False)
+            feat_df = pd.DataFrame({'Fitur': all_feature_names, 'Kepentingan': importances})
+            feat_df = feat_df.sort_values('Kepentingan', ascending=False).head(8)
+            
+            fig_feat = px.bar(feat_df, x='Kepentingan', y='Fitur', orientation='h', 
+                             template='plotly_dark', color='Kepentingan', color_continuous_scale='Viridis')
+            fig_feat.update_layout(yaxis=dict(autorange="reversed")) # Biar yang tertinggi di atas
+        except Exception as e:
+            st.error(f"Gagal memuat visualisasi fitur: {e}")
+            fig_feat = go.Figure()
+            
         return fig_scatter, fig_resid, fig_feat
-
     # ── LOGIKA RENDER STEP-BY-STEP ──
     if df_data is None:
         st.warning("Gagal memuat dataset `action2024/train.csv` untuk analisis.")
