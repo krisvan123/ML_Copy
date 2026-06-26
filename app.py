@@ -1115,7 +1115,7 @@ elif menu == "Alur & Proses Data":
         except:
             # Jika gagal (karena struktur pipeline berbeda), tampilkan pesan sederhana
             fig_feat = go.Figure().add_annotation(text="Feature Importance tidak tersedia", showarrow=False)
-    return fig_scatter, fig_resid, fig_feat
+        return fig_scatter, fig_resid, fig_feat
 
     # ── LOGIKA RENDER STEP-BY-STEP ──
     if df_data is None:
