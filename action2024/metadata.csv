@@ -1,0 +1,20 @@
+Nama Atribut,Deskripsi
+ID,ID unik untuk setiap data atau rekaman.
+WHO_region,Wilayah administratif WHO di mana negara atau wilayah tersebut berada.
+iso3,Kode ISO 3 huruf yang merepresentasikan negara.
+country_name,Nama negara tempat data diambil.
+city,Nama kota di mana pengukuran dilakukan.
+year,Tahun ketika pengukuran konsentrasi polutan dilakukan.
+pm10_concentration,Konsentrasi rata-rata tahunan partikel udara berdiameter ≤10 mikrometer (µg/m³).
+pm25_concentration,Konsentrasi rata-rata tahunan partikel udara berdiameter ≤2.5 mikrometer (µg/m³).
+no2_concentration,Konsentrasi rata-rata tahunan nitrogen dioksida (µg/m³).
+pm10_tempcov,Persentase ketersediaan data PM10 dalam setahun.
+pm25_tempcov,Persentase ketersediaan data PM2.5 dalam setahun.
+no2_tempcov,Persentase ketersediaan data NO₂ dalam setahun.
+type_of_stations,"Tipe stasiun pengukuran (misalnya: urban, suburban, industrial)."
+number_of_stations,Jumlah stasiun pengukuran yang digunakan.
+population,Jumlah populasi di wilayah tersebut.
+latitude,Garis lintang lokasi pengukuran.
+longitude,Garis bujur lokasi pengukuran.
+who_ms,"Status keanggotaan negara di WHO (0 = Bukan Anggota, 1 = Anggota)."
+Air_quality_category,Kategori kualitas udara
