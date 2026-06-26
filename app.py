@@ -1099,31 +1099,28 @@ elif menu == "Alur & Proses Data":
         # 2. Residual Histogram
         fig_resid = px.histogram(x=residuals, nbins=50, template='plotly_dark')
         
-        # 3. Feature Importance (BAGIAN INI YANG DIPERBAIKI)
+        # 3. Feature Importance (Versi Paling Aman)
+        fig_feat = go.Figure()
         try:
-            # Mengakses preprocessor dan transformer
+            # Ambil model Random Forest
+            rf_model = model.named_steps['model']
+            importances = rf_model.feature_importances_
+            
+            # Ambil preprocessor
             preprocessor = model.named_steps['preprocessor']
-            # Ambil nama fitur dari transformer 'cat'
-            ohe = preprocessor.named_transformers_['cat'].named_steps['ohe']
             
-            # Mendapatkan nama fitur kategorikal setelah OHE
-            if hasattr(ohe, 'get_feature_names_out'):
-                cat_feature_names = list(ohe.get_feature_names_out(CAT_COLS))
-            else:
-                cat_feature_names = list(ohe.get_feature_names(CAT_COLS))
-                
-            all_feature_names = NUM_COLS + cat_feature_names
-            importances = model.named_steps['model'].feature_importances_
+            # MENGGUNAKAN get_feature_names_out() yang mencakup numerik dan kategorikal sekaligus
+            # Ini tidak tergantung pada nama 'cat' atau 'ohe'
+            feature_names = preprocessor.get_feature_names_out()
             
-            feat_df = pd.DataFrame({'Fitur': all_feature_names, 'Kepentingan': importances})
+            feat_df = pd.DataFrame({'Fitur': feature_names, 'Kepentingan': importances})
             feat_df = feat_df.sort_values('Kepentingan', ascending=False).head(8)
             
             fig_feat = px.bar(feat_df, x='Kepentingan', y='Fitur', orientation='h', 
                              template='plotly_dark', color='Kepentingan', color_continuous_scale='Viridis')
-            fig_feat.update_layout(yaxis=dict(autorange="reversed")) # Biar yang tertinggi di atas
+            fig_feat.update_layout(yaxis=dict(autorange="reversed"))
         except Exception as e:
-            st.error(f"Gagal memuat visualisasi fitur: {e}")
-            fig_feat = go.Figure()
+            st.warning(f"Feature Importance tidak dapat dimuat: {e}")
             
         return fig_scatter, fig_resid, fig_feat
     # ── LOGIKA RENDER STEP-BY-STEP ──
