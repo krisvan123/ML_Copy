@@ -1,4 +1,3 @@
-
 # ===================================================================
 # BUILD_PIPELINE.PY — Script Pembuat Pipeline PM2.5
 # Pembuat: Kristian Novan
@@ -21,6 +20,7 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 import matplotlib
+import sklearn
 matplotlib.use('Agg')
 
 from sklearn.pipeline import Pipeline
@@ -160,10 +160,16 @@ num_pipeline = Pipeline([
     ("scaler",  StandardScaler()),
 ])
 
+# PERBAIKAN: Tangani perubahan parameter `sparse` pada Scikit-Learn versi baru
+if sklearn.__version__ >= '1.2':
+    ohe_step = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+else:
+    ohe_step = OneHotEncoder(handle_unknown="ignore", sparse=False)
+
 # Sub-pipeline untuk kolom kategorikal: imputasi konstanta → OHE
 cat_pipeline = Pipeline([
     ("imputer", SimpleImputer(strategy="constant", fill_value="Unknown")),
-    ("ohe",     OneHotEncoder(handle_unknown="ignore", sparse=False)),
+    ("ohe",     ohe_step),
 ])
 
 # ColumnTransformer menggabungkan keduanya
