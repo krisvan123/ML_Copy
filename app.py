@@ -449,11 +449,15 @@ def train_model_on_the_fly():
             ("cat", cat_pipeline, CAT_COLS),
         ])
         
+        # PERBAIKAN: Parameter disamakan dengan build_pipeline.py
         pipeline = SkPipeline([
             ("preprocessor", preprocessor),
             ("model", SkRandomForestRegressor(
-                n_estimators=100,
+                n_estimators=300,
+                max_depth=None,
+                min_samples_split=4,
                 min_samples_leaf=2,
+                max_features="sqrt",
                 random_state=42,
                 n_jobs=-1
             )),
@@ -856,11 +860,6 @@ elif menu == "Alur & Proses Data":
         st.session_state.eda_step = 1
         
     # Render diagram alur pemrosesan data (Step 1-7) berdasarkan step EDA saat ini
-    # Step 1 -> Validasi (2)
-    # Step 2 -> Analisis (4)
-    # Step 3 -> Visualisasi (5)
-    # Step 4 -> Insight (6)
-    # Step 5 -> Hasil Akhir (7)
     flow_mapping = {1: 2, 2: 4, 3: 5, 4: 6, 5: 7}
     render_flowchart(flow_mapping[st.session_state.eda_step])
     
@@ -889,8 +888,10 @@ elif menu == "Alur & Proses Data":
 
     # Helper functions untuk membuat plot Plotly di app.py
     def plot_plotly_missing_values(df):
-        cols = ["pm25_tempcov", "pm25_concentration", "pm10_tempcov", 
-                "no2_tempcov", "population", "no2_concentration", "pm10_concentration"]
+        # PERBAIKAN: Hanya gunakan kolom yang terbukti ada di dataset untuk mencegah KeyError
+        cols = ["year", "latitude", "longitude", "pm10_concentration", 
+                "no2_concentration", "number_of_stations", "who_ms", "population", "pm25_concentration"]
+        
         missing_pct = [(df[c].isna().sum() / len(df) * 100) for c in cols]
         missing_df = pd.DataFrame({
             "Fitur": cols,
@@ -908,14 +909,18 @@ elif menu == "Alur & Proses Data":
             margin=dict(l=20, r=20, t=40, b=20),
             xaxis_title="Nama Fitur",
             yaxis_title="Persentase (%)",
-            yaxis=dict(range=[0, 80]),
+            yaxis=dict(range=[0, 100]),
             coloraxis_showscale=False
         )
         fig.update_traces(textposition='outside')
         return fig
 
     def plot_plotly_class_distribution(df):
-        counts = df['Air_quality_category'].dropna().value_counts().reset_index()
+        # PERBAIKAN: Buat kolom Kategori secara dinamis agar tidak menyebabkan KeyError
+        df_temp = df.copy()
+        df_temp['Air_quality_category'] = np.where(df_temp['pm25_concentration'] <= 35.4, 'Safety', 'Dangerous')
+        
+        counts = df_temp['Air_quality_category'].dropna().value_counts().reset_index()
         counts.columns = ['Kategori', 'Jumlah']
         color_map = {'Safety': '#10b981', 'Dangerous': '#ef4444'}
         
@@ -1285,7 +1290,6 @@ elif menu == "Alur & Proses Data":
                 st.plotly_chart(fig_r2, use_container_width=True)
                 
             with sc2:
-                # Run predictions on test split for final evaluation plots
                 fig_eval_scatter, fig_eval_resid, fig_eval_feat = plot_plotly_eval_final(df_data, model)
                 
                 st.markdown("**Akurasi Prediksi Aktual vs Prediksi Model Terpilih:**")
