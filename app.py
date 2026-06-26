@@ -1023,13 +1023,23 @@ elif menu == "Alur & Proses Data":
     def plot_plotly_correlation_matrix(df):
         corr_cols = ['pm25_concentration', 'pm10_concentration', 'no2_concentration',
                      'year', 'population', 'latitude', 'longitude', 'number_of_stations']
-        corr_m = df[corr_cols].corr()
         
-        fig = px.imshow(corr_m, text_auto='.2f',
-                        color_continuous_scale='coolwarm',
-                        aspect="auto",
-                        template='plotly_dark')
+        # Pastikan hanya kolom yang ada di DataFrame yang dipakai untuk korelasi
+        valid_cols = [c for c in corr_cols if c in df.columns]
+        corr_m = df[valid_cols].corr()
+        
+        # Gunakan heatmap berbasis graph_objects untuk kestabilan lebih tinggi
+        fig = go.Figure(data=go.Heatmap(
+            z=corr_m.values,
+            x=corr_m.columns,
+            y=corr_m.columns,
+            colorscale='RdBu',
+            zmin=-1, zmax=1
+        ))
+        
         fig.update_layout(
+            title="Matriks Korelasi Fitur",
+            template='plotly_dark',
             plot_bgcolor="rgba(17, 24, 39, 0.7)",
             paper_bgcolor="rgba(9, 13, 22, 0)",
             margin=dict(l=20, r=20, t=40, b=20)
