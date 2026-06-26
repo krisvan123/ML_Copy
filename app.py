@@ -1080,7 +1080,6 @@ elif menu == "Alur & Proses Data":
         fig_rmse.update_traces(textposition='outside')
         
         return fig_r2, fig_rmse
-
     def plot_plotly_eval_final(df, model):
         df_model = df.dropna(subset=[TARGET_COL]).copy()
         df_model = df_model[df_model[TARGET_COL] > 0]
@@ -1093,60 +1092,30 @@ elif menu == "Alur & Proses Data":
         residuals = y_test - y_pred
         
         # Scatter: Actual vs Predicted
-        scatter_df = pd.DataFrame({'Aktual': y_test, 'Prediksi': y_pred})
-        scatter_sub = scatter_df.sample(n=min(1200, len(scatter_df)), random_state=42)
-        fig_scatter = px.scatter(scatter_sub, x='Aktual', y='Prediksi',
-                                 opacity=0.5,
-                                 template='plotly_dark')
-        fig_scatter.add_shape(
-            type="line", line=dict(dash='dash', color='red', width=2),
-            x0=0, y0=0, x1=max(y_test), y1=max(y_test)
-        )
-        fig_scatter.update_layout(
-            plot_bgcolor="rgba(17, 24, 39, 0.7)",
-            paper_bgcolor="rgba(9, 13, 22, 0)",
-            margin=dict(l=20, r=20, t=40, b=20),
-            xaxis_title="PM2.5 Aktual (µg/m³)",
-            yaxis_title="PM2.5 Prediksi (µg/m³)"
-        )
+        fig_scatter = px.scatter(x=y_test, y=y_pred, opacity=0.5, template='plotly_dark')
+        fig_scatter.add_shape(type="line", line=dict(dash='dash', color='red'), x0=y_test.min(), y0=y_test.min(), x1=y_test.max(), y1=y_test.max())
+        fig_scatter.update_layout(xaxis_title="PM2.5 Aktual", yaxis_title="PM2.5 Prediksi")
         
         # Residual Histogram
-        fig_resid = px.histogram(x=residuals, nbins=50,
-                                 template='plotly_dark')
-        fig_resid.update_layout(
-            plot_bgcolor="rgba(17, 24, 39, 0.7)",
-            paper_bgcolor="rgba(9, 13, 22, 0)",
-            margin=dict(l=20, r=20, t=40, b=20),
-            xaxis_title="Residu (Aktual - Prediksi)",
-            yaxis_title="Frekuensi"
-        )
-        fig_resid.update_traces(marker_color='#a180ff')
+        fig_resid = px.histogram(x=residuals, nbins=50, template='plotly_dark')
+        fig_resid.update_layout(xaxis_title="Residu", yaxis_title="Frekuensi")
         
-        # Feature Importance
-        ohe = model.named_steps['preprocessor'].named_transformers_['cat'].named_steps['ohe']
-        cat_cols = list(ohe.get_feature_names_out(['who_region'])) if hasattr(ohe, 'get_feature_names_out') else list(ohe.get_feature_names(['who_region']))
-        num_cols = ["year", "latitude", "longitude", "pm10_concentration", "no2_concentration", "number_of_stations", "who_ms", "population"]
-        feature_names = num_cols + cat_cols
-        
-        importances = model.named_steps['model'].feature_importances_
-        feat_df = pd.DataFrame({
-            'Fitur': feature_names,
-            'Kepentingan': importances
-        }).sort_values('Kepentingan', ascending=True).tail(8)
-        
-        fig_feat = px.bar(feat_df, x='Kepentingan', y='Fitur', orientation='h',
-                          text=[f"{v:.1%}" for v in feat_df['Kepentingan']],
-                          template='plotly_dark')
-        fig_feat.update_layout(
-            plot_bgcolor="rgba(17, 24, 39, 0.7)",
-            paper_bgcolor="rgba(9, 13, 22, 0)",
-            margin=dict(l=20, r=20, t=40, b=20),
-            xaxis_title="Tingkat Kepentingan",
-            yaxis_title="Fitur"
-        )
-        fig_feat.update_traces(marker_color='#10b981', textposition='outside')
-        
-        return fig_scatter, fig_resid, fig_feat
+        # Feature Importance yang lebih aman
+        try:
+            # Mencoba mengakses melalui nama langkah yang benar
+            preprocessor = model.named_steps['preprocessor']
+            ohe = preprocessor.named_transformers_['cat'].named_steps['ohe']
+            cat_cols = list(ohe.get_feature_names_out(['who_region']))
+            num_cols = ["year", "latitude", "longitude", "pm10_concentration", "no2_concentration", "number_of_stations", "who_ms", "population"]
+            feature_names = num_cols + cat_cols
+            importances = model.named_steps['model'].feature_importances_
+            
+            feat_df = pd.DataFrame({'Fitur': feature_names, 'Kepentingan': importances}).sort_values('Kepentingan', ascending=True).tail(8)
+            fig_feat = px.bar(feat_df, x='Kepentingan', y='Fitur', orientation='h', template='plotly_dark')
+        except:
+            # Jika gagal (karena struktur pipeline berbeda), tampilkan pesan sederhana
+            fig_feat = go.Figure().add_annotation(text="Feature Importance tidak tersedia", showarrow=False)
+    return fig_scatter, fig_resid, fig_feat
 
     # ── LOGIKA RENDER STEP-BY-STEP ──
     if df_data is None:
