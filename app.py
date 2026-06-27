@@ -719,31 +719,43 @@ if menu == "Beranda Utama":
         """, unsafe_allow_html=True)
         
         # Penjelasan Teknis Tambahan (Expander)
+        # Penjelasan Teknis Tambahan (Expander)
         with st.expander("Lihat Detail Model & Input Konfigurasi"):
             ec1, ec2 = st.columns(2)
+            
             with ec1:
-                st.markdown("**Struktur Input untuk Model:**")
-                st.json({
-                    "Tahun": int(year),
-                    "Latitude": float(latitude),
-                    "Longitude": float(longitude),
-                    "Populasi": int(population),
-                    "Wilayah WHO": who_region,
-                    "Kadar PM10": float(pm10) if not np.isnan(pm10) else "Diimputasi (Median Latihan)",
-                    "Kadar NO₂": float(no2) if not np.isnan(no2) else "Diimputasi (Median Latihan)",
-                    "Jumlah Stasiun": int(number_of_stations),
-                    "Status Anggota WHO": int(who_ms)
-                })
+                pm10_val = f"{float(pm10)} µg/m³" if not np.isnan(pm10) else "Diimputasi (Median)"
+                no2_val = f"{float(no2)} µg/m³" if not np.isnan(no2) else "Diimputasi (Median)"
+                
+                st.markdown(f"""
+                <div class="dashboard-card" style="margin-bottom: 0px !important;">
+                    <div style="font-weight: 600; color: #64d2ff; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Struktur Input Pengguna</div>
+                    <table style="width: 100%; font-size: 0.85rem; color: #e2e8f0; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 0; color: #94a3b8;">Tahun</td><td style="text-align: right; font-weight: 500;">{int(year)}</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 0; color: #94a3b8;">Koordinat</td><td style="text-align: right; font-weight: 500;">{float(latitude)}, {float(longitude)}</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 0; color: #94a3b8;">Populasi</td><td style="text-align: right; font-weight: 500;">{int(population):,} Jiwa</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 0; color: #94a3b8;">Wilayah WHO</td><td style="text-align: right; font-weight: 500;">{who_region}</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 0; color: #94a3b8;">Kadar PM10</td><td style="text-align: right; font-weight: 500;">{pm10_val}</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 6px 0; color: #94a3b8;">Kadar NO₂</td><td style="text-align: right; font-weight: 500;">{no2_val}</td></tr>
+                        <tr><td style="padding: 6px 0; color: #94a3b8;">Stasiun / Anggota WHO</td><td style="text-align: right; font-weight: 500;">{int(number_of_stations)} Stasiun / {int(who_ms)}</td></tr>
+                    </table>
+                </div>
+                """, unsafe_allow_html=True)
+                
             with ec2:
-                st.markdown("**Detail Model Machine Learning:**")
-                st.json({
-                    "Algoritma": "Random Forest Regressor",
-                    "Jumlah Pohon (Trees)": 300,
-                    "Skor Kebaikan Model (R²)": 0.8900,
-                    "Rata-rata Error Mutlak (MAE)": "2.68 µg/m³",
-                    "Akurasi Imputasi": "Median Imputer Terintegrasi",
-                    "Sumber Data Pelatihan": "Data Kualitas Udara Global WHO"
-                })
+                st.markdown("""
+                <div class="dashboard-card" style="margin-bottom: 0px !important; height: 100%;">
+                    <div style="font-weight: 600; color: #a180ff; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Detail Mesin Prediksi</div>
+                    <table style="width: 100%; font-size: 0.85rem; color: #e2e8f0; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 8px 0; color: #94a3b8;">Algoritma ML</td><td style="text-align: right; font-weight: 500;">Random Forest Regressor</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 8px 0; color: #94a3b8;">Jumlah Pohon (Estimators)</td><td style="text-align: right; font-weight: 500;">100</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 8px 0; color: #94a3b8;">Skor Kebaikan (R²)</td><td style="text-align: right; font-weight: 600; color: #10b981;">0.8900</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 8px 0; color: #94a3b8;">Rata-rata Galat (MAE)</td><td style="text-align: right; font-weight: 500;">2.68 µg/m³</td></tr>
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);"><td style="padding: 8px 0; color: #94a3b8;">Metode Imputasi</td><td style="text-align: right; font-weight: 500;">Median Terintegrasi</td></tr>
+                        <tr><td style="padding: 8px 0; color: #94a3b8;">Sumber Pelatihan</td><td style="text-align: right; font-weight: 500;">Database WHO Global</td></tr>
+                    </table>
+                </div>
+                """, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────
 # HALAMAN 2: 📖 PANDUAN & SUMBER INPUT
