@@ -765,12 +765,12 @@ elif menu == "Demo Kasus Nyata":
         
         # Tabel perbandingan detail
         results_table = """
-        <table class="model-table">
-            <thead><tr>
-                <th>Model ML</th><th>Prediksi PM2.5</th><th>Kategori Kesehatan</th><th>Selisih dari RF</th><th>Status Model</th>
-            </tr></thead>
-            <tbody>
-        """
+<table class="model-table">
+    <thead><tr>
+        <th>Model ML</th><th>Prediksi PM2.5</th><th>Kategori</th><th>Selisih</th><th>Status</th>
+    </tr></thead>
+    <tbody>
+"""
         for mname, pred_val in model_results.items():
             cat_name, cat_emoji, _, _, _, _ = classify_pm25(pred_val)
             diff = pred_val - rf_pred
