@@ -1,6 +1,6 @@
 # ===================================================================
 # APP.PY — AirSense PM2.5 Dashboard (Final Fixed Version)
-# Pembuat: Kristian Novan
+# Pembuat: Kristian Novan 2802458560
 # Mata Kuliah: COMP6577001 — Machine Learning
 # ===================================================================
 
