@@ -78,20 +78,20 @@ st.markdown("""
         pointer-events: none;
     }
     
-    /* Kartu Dashboard */
-    .dashboard-card {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(100, 200, 255, 0.15);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 24px;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease;
+    /* Kartu Dashboard & Container */
+    .dashboard-card, div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(100, 200, 255, 0.15) !important;
+        border-radius: 16px !important;
+        padding: 24px !important;
+        margin-bottom: 24px !important;
+        backdrop-filter: blur(10px) !important;
+        transition: all 0.3s ease !important;
     }
-    .dashboard-card:hover {
-        border-color: rgba(100, 200, 255, 0.35);
-        box-shadow: 0 8px 32px rgba(0, 140, 255, 0.15);
-        transform: translateY(-2px);
+    .dashboard-card:hover, div[data-testid="stVerticalBlockBorderWrapper"]:hover {
+        border-color: rgba(100, 200, 255, 0.35) !important;
+        box-shadow: 0 8px 32px rgba(0, 140, 255, 0.15) !important;
+        transform: translateY(-2px) !important;
     }
     
     /* Kartu Informasi Parameter (Panduan) */
@@ -568,88 +568,88 @@ if menu == "Beranda Utama":
     # Form Input Grid
     st.markdown('<div class="section-title">Form Parameter Masukan</div>', unsafe_allow_html=True)
     
+    # Form Input Grid
+    st.markdown('<div class="section-title">Form Parameter Masukan</div>', unsafe_allow_html=True)
+    
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-        st.markdown(f'<div class="card-title">{get_svg_icon("geo", 20, "#64d2ff")} <span>Letak Geografis</span></div>', unsafe_allow_html=True)
-        who_region_label = st.selectbox(
-            "Wilayah WHO",
-            options=list(WHO_REGION.keys()),
-            index=0,
-            help="Pembagian wilayah administratif dunia berdasarkan organisasi kesehatan dunia (WHO)"
-        )
-        who_region = WHO_REGION[who_region_label]
-        
-        latitude = st.number_input(
-            "Garis Lintang (Latitude)",
-            min_value=-90.0, max_value=90.0,
-            value=-6.2088, format="%.4f",
-            help="Contoh: Jakarta memiliki koordinat -6.2088"
-        )
-        longitude = st.number_input(
-            "Garis Bujur (Longitude)",
-            min_value=-180.0, max_value=180.0,
-            value=106.8456, format="%.4f",
-            help="Contoh: Jakarta memiliki koordinat 106.8456"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(f'<div class="card-title">{get_svg_icon("geo", 20, "#64d2ff")} <span>Letak Geografis</span></div>', unsafe_allow_html=True)
+            who_region_label = st.selectbox(
+                "Wilayah WHO",
+                options=list(WHO_REGION.keys()),
+                index=0,
+                help="Pembagian wilayah administratif dunia berdasarkan organisasi kesehatan dunia (WHO)"
+            )
+            who_region = WHO_REGION[who_region_label]
+            
+            latitude = st.number_input(
+                "Garis Lintang (Latitude)",
+                min_value=-90.0, max_value=90.0,
+                value=-6.2088, format="%.4f",
+                help="Contoh: Jakarta memiliki koordinat -6.2088"
+            )
+            longitude = st.number_input(
+                "Garis Bujur (Longitude)",
+                min_value=-180.0, max_value=180.0,
+                value=106.8456, format="%.4f",
+                help="Contoh: Jakarta memiliki koordinat 106.8456"
+            )
         
     with col2:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-        st.markdown(f'<div class="card-title">{get_svg_icon("population", 20, "#10b981")} <span>Demografi & Pos</span></div>', unsafe_allow_html=True)
-        year = st.number_input(
-            "Tahun Analisis",
-            min_value=2010, max_value=2035,
-            value=2024, step=1
-        )
-        population = st.number_input(
-            "Populasi Penduduk (Jiwa)",
-            min_value=1000, max_value=60000000,
-            value=10000000, step=100000, format="%d"
-        )
-        number_of_stations = st.number_input(
-            "Jumlah Stasiun Pemantau Udara",
-            min_value=1, max_value=300,
-            value=3, step=1
-        )
-        who_ms_label = st.radio(
-            "Status Keanggotaan Negara di WHO",
-            options=["Anggota Resmi WHO", "Non-Anggota / Pengamat"],
-            horizontal=True
-        )
-        who_ms = 1 if who_ms_label == "Anggota Resmi WHO" else 0
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown(f'<div class="card-title">{get_svg_icon("population", 20, "#10b981")} <span>Demografi & Pos</span></div>', unsafe_allow_html=True)
+            year = st.number_input(
+                "Tahun Analisis",
+                min_value=2010, max_value=2035,
+                value=2024, step=1
+            )
+            population = st.number_input(
+                "Populasi Penduduk (Jiwa)",
+                min_value=1000, max_value=60000000,
+                value=10000000, step=100000, format="%d"
+            )
+            number_of_stations = st.number_input(
+                "Jumlah Stasiun Pemantau Udara",
+                min_value=1, max_value=300,
+                value=3, step=1
+            )
+            who_ms_label = st.radio(
+                "Status Keanggotaan Negara di WHO",
+                options=["Anggota Resmi WHO", "Non-Anggota / Pengamat"],
+                horizontal=True
+            )
+            who_ms = 1 if who_ms_label == "Anggota Resmi WHO" else 0
         
     with col3:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-        st.markdown(f'<div class="card-title">{get_svg_icon("pollutant", 20, "#a180ff")} <span>Polutan Penunjang</span></div>', unsafe_allow_html=True)
-        st.write("Mengisi data polutan penunjang di bawah ini sangat direkomendasikan untuk meningkatkan akurasi estimasi model.")
-        
-        has_pm10 = st.checkbox("Saya memiliki data PM10", value=False)
-        if has_pm10:
-            pm10 = st.number_input(
-                "Konsentrasi PM10 (µg/m³)",
-                min_value=0.0, max_value=500.0,
-                value=35.0, step=0.1
-            )
-            st.success("PM10 akan dimasukkan ke dalam analisis model.")
-        else:
-            pm10 = np.nan
-            st.info("PM10 tidak diisi, model akan mengestimasi nilai menggunakan median historis.")
+        with st.container(border=True):
+            st.markdown(f'<div class="card-title">{get_svg_icon("pollutant", 20, "#a180ff")} <span>Polutan Penunjang</span></div>', unsafe_allow_html=True)
+            st.write("Mengisi data polutan penunjang di bawah ini sangat direkomendasikan untuk meningkatkan akurasi estimasi model.")
             
-        has_no2 = st.checkbox("Saya memiliki data NO₂", value=False)
-        if has_no2:
-            no2 = st.number_input(
-                "Konsentrasi NO₂ (µg/m³)",
-                min_value=0.0, max_value=300.0,
-                value=20.0, step=0.1
-            )
-            st.success("NO₂ akan dimasukkan ke dalam analisis model.")
-        else:
-            no2 = np.nan
-            st.info("NO₂ tidak diisi, model akan mengestimasi nilai menggunakan median historis.")
-        st.markdown('</div>', unsafe_allow_html=True)
+            has_pm10 = st.checkbox("Saya memiliki data PM10", value=False)
+            if has_pm10:
+                pm10 = st.number_input(
+                    "Konsentrasi PM10 (µg/m³)",
+                    min_value=0.0, max_value=500.0,
+                    value=35.0, step=0.1
+                )
+                st.success("PM10 akan dimasukkan ke dalam analisis model.")
+            else:
+                pm10 = np.nan
+                st.info("PM10 tidak diisi, model akan mengestimasi nilai menggunakan median historis.")
+                
+            has_no2 = st.checkbox("Saya memiliki data NO₂", value=False)
+            if has_no2:
+                no2 = st.number_input(
+                    "Konsentrasi NO₂ (µg/m³)",
+                    min_value=0.0, max_value=300.0,
+                    value=20.0, step=0.1
+                )
+                st.success("NO₂ akan dimasukkan ke dalam analisis model.")
+            else:
+                no2 = np.nan
+                st.info("NO₂ tidak diisi, model akan mengestimasi nilai menggunakan median historis.")
 
     # Tombol eksekusi prediksi
     _, btn_col, _ = st.columns([1.5, 1, 1.5])
