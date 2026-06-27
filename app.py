@@ -48,7 +48,8 @@ GLOBAL_CSS = """
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
-#MainMenu, footer, header { visibility: hidden; }
+#MainMenu, footer { visibility: hidden; }
+header { background-color: transparent !important; }
 
 :root {
   --bg-base:    #06080f;
