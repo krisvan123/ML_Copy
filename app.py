@@ -800,11 +800,32 @@ elif menu == "Panduan & Sumber Input":
             
         with preview_col:
             if df_data is not None:
+                st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
                 st.markdown(f'<div class="card-title">{get_svg_icon("success", 20, "#10b981")} <span>Preview 10 Baris Pertama Data</span></div>', unsafe_allow_html=True)
-                st.dataframe(df_data.head(10))
                 
+                # Mengubah Dataframe menjadi HTML agar mengikuti CSS Anda
+                html_table = df_data.head(10).to_html(classes='table table-striped', border=0, justify='left', index=False)
+                # Menambahkan sedikit custom CSS untuk memastikan teks tabel terbaca
+                st.markdown(f"""
+                <div style="overflow-x: auto; color: #e2e8f0; font-size: 0.85rem;">
+                    {html_table.replace('class="dataframe"', 'style="width:100%; border-collapse:collapse; color:#e2e8f0;"')}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                # Bagian Ringkasan Statistik
                 with st.expander("Lihat Ringkasan Statistik Deskriptif (Numeric Only)"):
-                    st.dataframe(df_data.describe())
+                    st.markdown('<div class="dashboard-card" style="margin-bottom: 0px !important;">', unsafe_allow_html=True)
+                    
+                    html_stats = df_data.describe().to_html(classes='table', border=0, justify='left')
+                    st.markdown(f"""
+                    <div style="overflow-x: auto; color: #e2e8f0; font-size: 0.85rem;">
+                        {html_stats.replace('class="dataframe"', 'style="width:100%; border-collapse:collapse; color:#e2e8f0;"')}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.warning("Gagal memuat dataset lokal `action2024/train.csv` untuk preview.")
 
