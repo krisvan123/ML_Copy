@@ -1153,26 +1153,26 @@ elif "Demo" in menu:
             </tr>
             """)
 
-        st.markdown(dedent(f"""
-        <div class="tbl-wrap">
-          <table class="modern-tbl">
-            <thead>
-              <tr>
-                <th>Algoritma</th>
-                <th>R2 Score</th>
-                <th>RMSE (ug/m3)</th>
-                <th>MAE (ug/m3)</th>
-                <th>Kecepatan</th>
-                <th>Kompleksitas</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows_html}
-            </tbody>
-          </table>
-        </div>
-        """), unsafe_allow_html=True)
+        st.markdown(f"""
+<div class="tbl-wrap">
+<table class="modern-tbl">
+<thead>
+<tr>
+<th>Algoritma</th>
+<th>R2 Score</th>
+<th>RMSE (ug/m3)</th>
+<th>MAE (ug/m3)</th>
+<th>Kecepatan</th>
+<th>Kompleksitas</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+{rows_html}
+</tbody>
+</table>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown(dedent("""
         <div class="insight-box" style="margin-top:14px;">
@@ -1311,24 +1311,24 @@ elif "Demo" in menu:
             </tr>
             """)
 
-        st.markdown(dedent(f"""
-        <div class="tbl-wrap">
-          <table class="modern-tbl">
-            <thead>
-              <tr>
-                <th>Model ML</th>
-                <th>Prediksi PM2.5</th>
-                <th>Kategori</th>
-                <th>Selisih vs RF</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows_demo}
-            </tbody>
-          </table>
-        </div>
-        """), unsafe_allow_html=True)
+        st.markdown(f"""
+<div class="tbl-wrap">
+<table class="modern-tbl">
+<thead>
+<tr>
+<th>Model ML</th>
+<th>Prediksi PM2.5</th>
+<th>Kategori</th>
+<th>Selisih vs RF</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+{rows_demo}
+</tbody>
+</table>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown(dedent("""
         <div class="insight-box" style="margin-top:14px;">
