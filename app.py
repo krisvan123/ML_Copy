@@ -1034,10 +1034,24 @@ elif menu == "Alur & Proses Data":
         df_model = df.dropna(subset=[TARGET_COL]).copy()
         df_model = df_model[df_model[TARGET_COL] > 0]
         
+        # --- PERBAIKAN: Pastikan data benar-benar bersih sebelum masuk ke pipeline ---
+        # 1. Konversi paksa kolom numerik
+        for col in NUM_COLS:
+            df_model[col] = pd.to_numeric(df_model[col], errors='coerce')
+        
+        # 2. Pastikan kolom kategorikal adalah string dan tangani nilai kosong
+        for col in CAT_COLS:
+            df_model[col] = df_model[col].fillna("Unknown").astype(str)
+        
+        # 3. Drop baris jika ada nilai NaN di fitur input setelah konversi
+        df_model = df_model.dropna(subset=FEATURE_COLS)
+        # ----------------------------------------------------------------------------
+        
         X_all = df_model[FEATURE_COLS]
         y_all = df_model[TARGET_COL]
         X_train, X_test, y_train, y_test = train_test_split(X_all, y_all, test_size=0.2, random_state=42)
         
+        # Melakukan prediksi
         y_pred = model.predict(X_test)
         residuals = y_test - y_pred
         
