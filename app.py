@@ -366,7 +366,6 @@ def get_svg_icon(name, size=24, color="#64d2ff"):
     return icons.get(name, "")
 
 # Helper untuk menggambar diagram alur
-# Helper untuk menggambar diagram alur
 def render_flowchart(current_step):
     steps = [
         "Data Overview",
@@ -448,15 +447,11 @@ def train_model_on_the_fly():
             ("cat", cat_pipeline, CAT_COLS),
         ])
         
-        # PERBAIKAN: Parameter disamakan dengan build_pipeline.py
         pipeline = SkPipeline([
             ("preprocessor", preprocessor),
             ("model", SkRandomForestRegressor(
-                n_estimators=300,
-                max_depth=None,
-                min_samples_split=4,
+                n_estimators=100,
                 min_samples_leaf=2,
-                max_features="sqrt",
                 random_state=42,
                 n_jobs=-1
             )),
@@ -563,11 +558,9 @@ if menu == "Beranda Utama":
         </div>
     </div>
     """, unsafe_allow_html=True)
+
     # Form Input Grid
     st.markdown('<div class="section-title">Form Parameter Masukan</div>', unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -672,44 +665,7 @@ if menu == "Beranda Utama":
             
         # Tampilkan Hasil
         st.markdown('<div class="section-title">Hasil Prediksi & Analisis</div>', unsafe_allow_html=True)
-        # --- KODE YANG DITAMBAHKAN: 3 KOTAK RINGKASAN INPUT ---
-        m_col1, m_col2, m_col3 = st.columns(3)
-        with m_col1:
-            st.markdown(f"""
-            <div class="dashboard-card" style="padding: 15px; margin-bottom: 20px;">
-                <div class="card-title" style="color: #64d2ff; font-size: 1rem;">🌐 Letak Geografis</div>
-                <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
-                    <b>Wilayah:</b> {who_region_label}<br>
-                    <b>Koordinat:</b> {latitude:.4f}°, {longitude:.4f}°
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        with m_col2:
-            st.markdown(f"""
-            <div class="dashboard-card" style="padding: 15px; margin-bottom: 20px;">
-                <div class="card-title" style="color: #10b981; font-size: 1rem;">📊 Demografi & Pos</div>
-                <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
-                    <b>Populasi:</b> {int(population):,}<br>
-                    <b>Jml Stasiun:</b> {int(number_of_stations)} unit<br>
-                    <b>Tahun Data:</b> {int(year)}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        with m_col3:
-            pm10_text = f"{pm10:.1f} µg/m³" if not np.isnan(pm10) else "Diimputasi (Median)"
-            no2_text = f"{no2:.1f} µg/m³" if not np.isnan(no2) else "Diimputasi (Median)"
-            st.markdown(f"""
-            <div class="dashboard-card" style="padding: 15px; margin-bottom: 20px;">
-                <div class="card-title" style="color: #a180ff; font-size: 1rem;">🧪 Polutan Penunjang</div>
-                <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
-                    <b>PM10:</b> {pm10_text}<br>
-                    <b>NO₂:</b> {no2_text}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        # --- BATAS KODE YANG DITAMBAHKAN ---
+        
         # Skala Visual Bar
         st.markdown(f"""
         <div class="aqi-scale-container">
@@ -856,10 +812,9 @@ elif menu == "Panduan & Sumber Input":
 # HALAMAN 3: ⚙️ ALUR & PROSES DATA (STEP-BY-STEP SIMULATION)
 # ─────────────────────────────────────────────────────────────────
 elif menu == "Alur & Proses Data":
-    st.markdown('<h1 class="main-title">Eksplorasi Data & Evaluasi Model</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">Eksplorasi Data & Evaluasi Model Secara Interaktif</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Eksplorasi dataset WHO dan evaluasi model Machine Learning Anda langkah demi langkah. Pilih tahap analisis di bawah ini untuk melihat hasil visualisasi Plotly interaktif secara bertahap.</p>', unsafe_allow_html=True)
     
-    # Session State untuk alur EDA step-by-step
     # Session State untuk alur EDA step-by-step
     if "eda_step" not in st.session_state:
         st.session_state.eda_step = 1
@@ -889,14 +844,11 @@ elif menu == "Alur & Proses Data":
 
     st.markdown("---")
 
-    st.markdown("---")
-    @st.cache_data
     # Helper functions untuk membuat plot Plotly di app.py
+    @st.cache_data
     def plot_plotly_missing_values(df):
-        # PERBAIKAN: Hanya gunakan kolom yang terbukti ada di dataset untuk mencegah KeyError
-        cols = ["year", "latitude", "longitude", "pm10_concentration", 
-                "no2_concentration", "number_of_stations", "who_ms", "population", "pm25_concentration"]
-        
+        cols = ["pm25_tempcov", "pm25_concentration", "pm10_tempcov", 
+                "no2_tempcov", "population", "no2_concentration", "pm10_concentration"]
         missing_pct = [(df[c].isna().sum() / len(df) * 100) for c in cols]
         missing_df = pd.DataFrame({
             "Fitur": cols,
@@ -914,18 +866,15 @@ elif menu == "Alur & Proses Data":
             margin=dict(l=20, r=20, t=40, b=20),
             xaxis_title="Nama Fitur",
             yaxis_title="Persentase (%)",
-            yaxis=dict(range=[0, 100]),
+            yaxis=dict(range=[0, 80]),
             coloraxis_showscale=False
         )
         fig.update_traces(textposition='outside')
         return fig
+
     @st.cache_data
     def plot_plotly_class_distribution(df):
-        # PERBAIKAN: Buat kolom Kategori secara dinamis agar tidak menyebabkan KeyError
-        df_temp = df.copy()
-        df_temp['Air_quality_category'] = np.where(df_temp['pm25_concentration'] <= 35.4, 'Safety', 'Dangerous')
-        
-        counts = df_temp['Air_quality_category'].dropna().value_counts().reset_index()
+        counts = df['Air_quality_category'].dropna().value_counts().reset_index()
         counts.columns = ['Kategori', 'Jumlah']
         color_map = {'Safety': '#10b981', 'Dangerous': '#ef4444'}
         
@@ -943,6 +892,7 @@ elif menu == "Alur & Proses Data":
         )
         fig.update_traces(textposition='outside')
         return fig
+
     @st.cache_data
     def plot_plotly_pm_distributions(df):
         pm25_filtered = df[df['pm25_concentration'] < 150]['pm25_concentration'].dropna()
@@ -963,6 +913,7 @@ elif menu == "Alur & Proses Data":
             legend=dict(x=0.8, y=0.9, bgcolor='rgba(17, 24, 39, 0.5)')
         )
         return fig
+
     @st.cache_data
     def plot_plotly_scatter_pm(df):
         sc = df.dropna(subset=['pm10_concentration', 'pm25_concentration'])
@@ -983,6 +934,7 @@ elif menu == "Alur & Proses Data":
             coloraxis_showscale=False
         )
         return fig
+
     @st.cache_data
     def plot_plotly_boxplot_regions(df):
         REGION_LABEL = {
@@ -1006,6 +958,7 @@ elif menu == "Alur & Proses Data":
             showlegend=False
         )
         return fig
+
     @st.cache_data
     def plot_plotly_yearly_trends(df):
         yr = df.dropna(subset=['pm25_concentration']).groupby('year')['pm25_concentration'].agg(['mean', 'median']).reset_index()
@@ -1024,33 +977,24 @@ elif menu == "Alur & Proses Data":
             legend=dict(x=0.8, y=0.9, bgcolor='rgba(17, 24, 39, 0.5)')
         )
         return fig
+
     @st.cache_data
     def plot_plotly_correlation_matrix(df):
         corr_cols = ['pm25_concentration', 'pm10_concentration', 'no2_concentration',
                      'year', 'population', 'latitude', 'longitude', 'number_of_stations']
+        corr_m = df[corr_cols].corr()
         
-        # Pastikan hanya kolom yang ada di DataFrame yang dipakai untuk korelasi
-        valid_cols = [c for c in corr_cols if c in df.columns]
-        corr_m = df[valid_cols].corr()
-        
-        # Gunakan heatmap berbasis graph_objects untuk kestabilan lebih tinggi
-        fig = go.Figure(data=go.Heatmap(
-            z=corr_m.values,
-            x=corr_m.columns,
-            y=corr_m.columns,
-            colorscale='RdBu',
-            zmin=-1, zmax=1
-        ))
-        
+        fig = px.imshow(corr_m, text_auto='.2f',
+                        color_continuous_scale='RdBu',
+                        aspect="auto",
+                        template='plotly_dark')
         fig.update_layout(
-            title="Matriks Korelasi Fitur",
-            template='plotly_dark',
             plot_bgcolor="rgba(17, 24, 39, 0.7)",
             paper_bgcolor="rgba(9, 13, 22, 0)",
             margin=dict(l=20, r=20, t=40, b=20)
         )
         return fig
-    @st.cache_data
+
     def plot_plotly_model_comparison():
         models_df = pd.DataFrame({
             'Model': ['Linear Regression', 'Ridge Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting'],
@@ -1085,6 +1029,7 @@ elif menu == "Alur & Proses Data":
         fig_rmse.update_traces(textposition='outside')
         
         return fig_r2, fig_rmse
+
     def plot_plotly_eval_final(df, model):
         df_model = df.dropna(subset=[TARGET_COL]).copy()
         df_model = df_model[df_model[TARGET_COL] > 0]
@@ -1096,38 +1041,62 @@ elif menu == "Alur & Proses Data":
         y_pred = model.predict(X_test)
         residuals = y_test - y_pred
         
-        # 1. Scatter: Actual vs Predicted
+        # Scatter: Actual vs Predicted
         scatter_df = pd.DataFrame({'Aktual': y_test, 'Prediksi': y_pred})
-        fig_scatter = px.scatter(scatter_df, x='Aktual', y='Prediksi', opacity=0.5, template='plotly_dark')
-        fig_scatter.add_shape(type="line", line=dict(dash='dash', color='red'), x0=0, y0=0, x1=y_test.max(), y1=y_test.max())
+        scatter_sub = scatter_df.sample(n=min(1200, len(scatter_df)), random_state=42)
+        fig_scatter = px.scatter(scatter_sub, x='Aktual', y='Prediksi',
+                                 opacity=0.5,
+                                 template='plotly_dark')
+        fig_scatter.add_shape(
+            type="line", line=dict(dash='dash', color='red', width=2),
+            x0=0, y0=0, x1=max(y_test), y1=max(y_test)
+        )
+        fig_scatter.update_layout(
+            plot_bgcolor="rgba(17, 24, 39, 0.7)",
+            paper_bgcolor="rgba(9, 13, 22, 0)",
+            margin=dict(l=20, r=20, t=40, b=20),
+            xaxis_title="PM2.5 Aktual (µg/m³)",
+            yaxis_title="PM2.5 Prediksi (µg/m³)"
+        )
         
-        # 2. Residual Histogram
-        fig_resid = px.histogram(x=residuals, nbins=50, template='plotly_dark')
+        # Residual Histogram
+        fig_resid = px.histogram(x=residuals, nbins=50,
+                                 template='plotly_dark')
+        fig_resid.update_layout(
+            plot_bgcolor="rgba(17, 24, 39, 0.7)",
+            paper_bgcolor="rgba(9, 13, 22, 0)",
+            margin=dict(l=20, r=20, t=40, b=20),
+            xaxis_title="Residu (Aktual - Prediksi)",
+            yaxis_title="Frekuensi"
+        )
+        fig_resid.update_traces(marker_color='#a180ff')
         
-        # 3. Feature Importance (Versi Paling Aman)
-        fig_feat = go.Figure()
-        try:
-            # Ambil model Random Forest
-            rf_model = model.named_steps['model']
-            importances = rf_model.feature_importances_
-            
-            # Ambil preprocessor
-            preprocessor = model.named_steps['preprocessor']
-            
-            # MENGGUNAKAN get_feature_names_out() yang mencakup numerik dan kategorikal sekaligus
-            # Ini tidak tergantung pada nama 'cat' atau 'ohe'
-            feature_names = preprocessor.get_feature_names_out()
-            
-            feat_df = pd.DataFrame({'Fitur': feature_names, 'Kepentingan': importances})
-            feat_df = feat_df.sort_values('Kepentingan', ascending=False).head(8)
-            
-            fig_feat = px.bar(feat_df, x='Kepentingan', y='Fitur', orientation='h', 
-                             template='plotly_dark', color='Kepentingan', color_continuous_scale='Viridis')
-            fig_feat.update_layout(yaxis=dict(autorange="reversed"))
-        except Exception as e:
-            st.warning(f"Feature Importance tidak dapat dimuat: {e}")
-            
+        # Feature Importance
+        ohe = model.named_steps['preprocessor'].named_transformers_['cat'].named_steps['ohe']
+        cat_cols = list(ohe.get_feature_names_out(['who_region'])) if hasattr(ohe, 'get_feature_names_out') else list(ohe.get_feature_names(['who_region']))
+        num_cols = ["year", "latitude", "longitude", "pm10_concentration", "no2_concentration", "number_of_stations", "who_ms", "population"]
+        feature_names = num_cols + cat_cols
+        
+        importances = model.named_steps['model'].feature_importances_
+        feat_df = pd.DataFrame({
+            'Fitur': feature_names,
+            'Kepentingan': importances
+        }).sort_values('Kepentingan', ascending=True).tail(8)
+        
+        fig_feat = px.bar(feat_df, x='Kepentingan', y='Fitur', orientation='h',
+                          text=[f"{v:.1%}" for v in feat_df['Kepentingan']],
+                          template='plotly_dark')
+        fig_feat.update_layout(
+            plot_bgcolor="rgba(17, 24, 39, 0.7)",
+            paper_bgcolor="rgba(9, 13, 22, 0)",
+            margin=dict(l=20, r=20, t=40, b=20),
+            xaxis_title="Tingkat Kepentingan",
+            yaxis_title="Fitur"
+        )
+        fig_feat.update_traces(marker_color='#10b981', textposition='outside')
+        
         return fig_scatter, fig_resid, fig_feat
+
     # ── LOGIKA RENDER STEP-BY-STEP ──
     if df_data is None:
         st.warning("Gagal memuat dataset `action2024/train.csv` untuk analisis.")
@@ -1280,6 +1249,7 @@ elif menu == "Alur & Proses Data":
                 st.plotly_chart(fig_r2, use_container_width=True)
                 
             with sc2:
+                # Run predictions on test split for final evaluation plots
                 fig_eval_scatter, fig_eval_resid, fig_eval_feat = plot_plotly_eval_final(df_data, model)
                 
                 st.markdown("**Akurasi Prediksi Aktual vs Prediksi Model Terpilih:**")
@@ -1294,24 +1264,14 @@ elif menu == "Alur & Proses Data":
             - **Fitur Utama:** Konsentrasi PM10 mendominasi signifikansi kontribusi model, disusul oleh koordinat lintang/bujur (geografis), populasi penduduk, dan konsentrasi gas NO₂.
             """)
             
-        # Tombol Navigasi Bawah
+        # Tombol Navigasi Bawah (Diperbarui agar Bebas Lag)
         st.markdown("<br>", unsafe_allow_html=True)
         col_prev, col_middle, col_next = st.columns([1, 2, 1])
         with col_prev:
             if st.session_state.eda_step > 1:
-                if st.button("Sebelumnya"):
-                    st.session_state.eda_step -= 1
-                    if hasattr(st, "rerun"):
-                        st.rerun()
-                    else:
-                        st.experimental_rerun()
+                st.button("⬅️ Sebelumnya", on_click=ubah_step, args=(st.session_state.eda_step - 1,), use_container_width=True)
         with col_middle:
             st.write("")
         with col_next:
             if st.session_state.eda_step < 5:
-                if st.button("Langkah Berikutnya"):
-                    st.session_state.eda_step += 1
-                    if hasattr(st, "rerun"):
-                        st.rerun()
-                    else:
-                        st.experimental_rerun()
+                st.button("Langkah Berikutnya ➡️", on_click=ubah_step, args=(st.session_state.eda_step + 1,), use_container_width=True)
