@@ -6,6 +6,7 @@ import os
 import warnings
 import sklearn
 import time
+from textwrap import dedent
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.pipeline import Pipeline as SkPipeline
@@ -17,6 +18,33 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 warnings.filterwarnings('ignore')
+def render_model_table_safe(model_results, rf_pred):
+    # Ditaruh di indentasi 0 (paling kiri), jadi aman dari Streamlit error
+    results_table = dedent("""
+    <table class="model-table">
+        <thead><tr>
+            <th>Model ML</th><th>Prediksi PM2.5</th><th>Kategori</th><th>Selisih</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+    """)
+    for mname, pred_val in model_results.items():
+        cat_name, cat_emoji, _, _, _, _ = classify_pm25(pred_val)
+        diff = pred_val - rf_pred
+        diff_str = f"+{diff:.1f}" if diff > 0 else f"{diff:.1f}"
+        is_best = mname == "Random Forest"
+        row_class = "best-row" if is_best else ""
+        badge = '<span class="badge badge-best">🏆 Digunakan</span>' if is_best else '<span class="badge badge-poor">Simulasi</span>'
+        name_display = f"<strong>{mname}</strong>" if is_best else mname
+        results_table += dedent(f'''
+            <tr class="{row_class}">
+                <td>{name_display}</td>
+                <td><strong style="color:#64d2ff;">{pred_val:.2f} µg/m³</strong></td>
+                <td>{cat_emoji} {cat_name}</td>
+                <td style="color:{'#94a3b8' if diff == 0 else ('#ef4444' if diff > 0 else '#10b981')};">{diff_str if not is_best else "—"}</td>
+                <td>{badge}</td>
+            </tr>''')
+    results_table += "\n    </tbody>\n</table>"
+    st.markdown(results_table, unsafe_allow_html=True)
 
 # ── Konfigurasi Halaman ────────────────────────────────────────────────────
 st.set_page_config(
@@ -764,32 +792,7 @@ elif menu == "Demo Kasus Nyata":
         st.plotly_chart(fig_compare, use_container_width=True)
         
         # Tabel perbandingan detail
-        results_table = """
-<table class="model-table">
-    <thead><tr>
-        <th>Model ML</th><th>Prediksi PM2.5</th><th>Kategori</th><th>Selisih</th><th>Status</th>
-    </tr></thead>
-    <tbody>
-"""
-        for mname, pred_val in model_results.items():
-            cat_name, cat_emoji, _, _, _, _ = classify_pm25(pred_val)
-            diff = pred_val - rf_pred
-            diff_str = f"+{diff:.1f}" if diff > 0 else f"{diff:.1f}"
-            is_best = mname == "Random Forest"
-            row_class = "best-row" if is_best else ""
-            badge = '<span class="badge badge-best">🏆 Digunakan App</span>' if is_best else '<span class="badge badge-poor">Simulasi</span>'
-            name_display = f"<strong>{mname}</strong>" if is_best else mname
-            results_table += f"""
-            <tr class="{row_class}">
-                <td>{name_display}</td>
-                <td><strong style="color:#64d2ff;">{pred_val:.2f} µg/m³</strong></td>
-                <td>{cat_emoji} {cat_name}</td>
-                <td style="color:{'#94a3b8' if diff == 0 else ('#ef4444' if diff > 0 else '#10b981')};">{diff_str if not is_best else "—"} µg/m³</td>
-                <td>{badge}</td>
-            </tr>
-            """
-        results_table += "</tbody></table>"
-        st.markdown(results_table, unsafe_allow_html=True)
+        render_model_table_safe(model_results, rf_pred)
         
         # Penjelasan perbedaan
         st.markdown(f"""
