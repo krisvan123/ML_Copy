@@ -6,7 +6,6 @@ import os
 import warnings
 import sklearn
 import time
-from textwrap import dedent
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.pipeline import Pipeline as SkPipeline
@@ -18,33 +17,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 warnings.filterwarnings('ignore')
-def render_model_table_safe(model_results, rf_pred):
-    # Ditaruh di indentasi 0 (paling kiri), jadi aman dari Streamlit error
-    results_table = dedent("""
-    <table class="model-table">
-        <thead><tr>
-            <th>Model ML</th><th>Prediksi PM2.5</th><th>Kategori</th><th>Selisih</th><th>Status</th>
-        </tr></thead>
-        <tbody>
-    """)
-    for mname, pred_val in model_results.items():
-        cat_name, cat_emoji, _, _, _, _ = classify_pm25(pred_val)
-        diff = pred_val - rf_pred
-        diff_str = f"+{diff:.1f}" if diff > 0 else f"{diff:.1f}"
-        is_best = mname == "Random Forest"
-        row_class = "best-row" if is_best else ""
-        badge = '<span class="badge badge-best">🏆 Digunakan</span>' if is_best else '<span class="badge badge-poor">Simulasi</span>'
-        name_display = f"<strong>{mname}</strong>" if is_best else mname
-        results_table += dedent(f'''
-            <tr class="{row_class}">
-                <td>{name_display}</td>
-                <td><strong style="color:#64d2ff;">{pred_val:.2f} µg/m³</strong></td>
-                <td>{cat_emoji} {cat_name}</td>
-                <td style="color:{'#94a3b8' if diff == 0 else ('#ef4444' if diff > 0 else '#10b981')};">{diff_str if not is_best else "—"}</td>
-                <td>{badge}</td>
-            </tr>''')
-    results_table += "\n    </tbody>\n</table>"
-    st.markdown(results_table, unsafe_allow_html=True)
 
 # ── Konfigurasi Halaman ────────────────────────────────────────────────────
 st.set_page_config(
@@ -478,11 +450,11 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     menu = st.radio("PILIH HALAMAN", [
-        "Beranda Utama",
-        "Demo Kasus Nyata",
-        "Panduan & Sumber Input",
-        "Alur & Proses Data",
-        "Penjelasan Kode"
+        "🏠 Beranda Utama",
+        "🧪 Demo Kasus Nyata",
+        "📖 Panduan & Sumber Input",
+        "⚙️ Alur & Proses Data",
+        "💻 Penjelasan Kode"
     ], index=0)
     
     st.markdown("<hr style='border-color:rgba(255,255,255,0.1);margin:25px 0 20px 0;'>", unsafe_allow_html=True)
@@ -523,7 +495,7 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 1: BERANDA UTAMA
 # ═══════════════════════════════════════════════════════════════════
-if menu == "Beranda Utama":
+if menu == "🏠 Beranda Utama":
     st.markdown("""
     <div class="hero-container">
         <h1 class="main-title" style="margin:0;">AirSense Dashboard</h1>
@@ -604,7 +576,7 @@ if menu == "Beranda Utama":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 2: DEMO KASUS NYATA
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "Demo Kasus Nyata":
+elif menu == "🧪 Demo Kasus Nyata":
     st.markdown('<h1 class="main-title">Demo Kasus Nyata Dunia</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Pilih salah satu dari 10 kota nyata di dunia untuk langsung melihat prediksi model, perbandingan antar model ML, dan analisis mengapa hasilnya bisa berbeda-beda.</p>', unsafe_allow_html=True)
 
@@ -612,25 +584,29 @@ elif menu == "Demo Kasus Nyata":
     MODEL_COMPARISON = {
         "Linear Regression":    {"r2": 0.6210, "rmse": 6.45, "mae": 4.82, "kecepatan": "⚡ Sangat Cepat",  "kompleksitas": "Rendah"},
         "Ridge Regression":     {"r2": 0.6212, "rmse": 6.45, "mae": 4.80, "kecepatan": "⚡ Sangat Cepat",  "kompleksitas": "Rendah"},
-        "Decision Tree":        {"r2": 0.7850, "rmse": 4.85, "mae": 2.95, "kecepatan": "🚀 Cepat",          "kompleksitas": "Sedang"},
+        "Decision Tree":        {"r2": 0.7850, "rmse": 4.85, "mae": 2.95, "kecepatan": "🚀 Cepat",         "kompleksitas": "Sedang"},
         "Random Forest":        {"r2": 0.8900, "rmse": 2.68, "mae": 1.75, "kecepatan": "🐢 Sedang",        "kompleksitas": "Tinggi"},
         "Gradient Boosting":    {"r2": 0.8850, "rmse": 2.78, "mae": 1.82, "kecepatan": "🐢 Sedang-Lambat", "kompleksitas": "Tinggi"},
+    }
+    SIMULATED_MULTIPLIERS = {
+        "Linear Regression": 1.35,
+        "Ridge Regression": 1.34,
+        "Decision Tree": 1.12,
+        "Gradient Boosting": 1.04,
     }
 
     # Tampilkan tabel perbandingan model
     with st.expander("📊 Lihat Tabel Perbandingan Semua Model ML (klik untuk expand)", expanded=False):
         st.markdown('<div class="section-title" style="font-size:1.2rem;">Komparasi Performa 5 Model Regresi</div>', unsafe_allow_html=True)
         
-        # Menggunakan dedent() agar spasi di kiri tidak dianggap sebagai code block
-        table_html = dedent("""
+        table_html = """
         <table class="model-table">
             <thead><tr>
                 <th>Model</th><th>R² Score</th><th>RMSE (µg/m³)</th><th>MAE (µg/m³)</th>
                 <th>Kecepatan</th><th>Kompleksitas</th><th>Status</th>
             </tr></thead>
             <tbody>
-        """)
-        
+        """
         best_model = "Random Forest"
         for name, m in MODEL_COMPARISON.items():
             is_best = name == best_model
@@ -639,9 +615,7 @@ elif menu == "Demo Kasus Nyata":
                 '<span class="badge badge-good">Baik</span>' if m["r2"] > 0.78 else '<span class="badge badge-poor">Kurang</span>'
             )
             name_display = f"<strong>{name}</strong>" if is_best else name
-            
-            # Setiap baris juga dibungkus dedent agar rapi
-            table_html += dedent(f"""
+            table_html += f"""
             <tr class="{row_class}">
                 <td>{name_display}</td>
                 <td><strong>{m['r2']:.4f}</strong></td>
@@ -651,8 +625,7 @@ elif menu == "Demo Kasus Nyata":
                 <td><span style="color:#94a3b8;font-size:0.8rem;">{m['kompleksitas']}</span></td>
                 <td>{badge}</td>
             </tr>
-            """)
-            
+            """
         table_html += "</tbody></table>"
         st.markdown(table_html, unsafe_allow_html=True)
         
@@ -674,8 +647,6 @@ elif menu == "Demo Kasus Nyata":
             </p>
         </div>
         """, unsafe_allow_html=True)
-
-    # ... (Sisa kode untuk menampilkan kota/grafik tetap sama) ...
 
     st.markdown('<div class="section-title" style="margin-top:20px;">Pilih Kota untuk Dianalisis</div>', unsafe_allow_html=True)
     
@@ -793,7 +764,32 @@ elif menu == "Demo Kasus Nyata":
         st.plotly_chart(fig_compare, use_container_width=True)
         
         # Tabel perbandingan detail
-        render_model_table_safe(model_results, rf_pred)
+        results_table = """
+        <table class="model-table">
+            <thead><tr>
+                <th>Model ML</th><th>Prediksi PM2.5</th><th>Kategori Kesehatan</th><th>Selisih dari RF</th><th>Status Model</th>
+            </tr></thead>
+            <tbody>
+        """
+        for mname, pred_val in model_results.items():
+            cat_name, cat_emoji, _, _, _, _ = classify_pm25(pred_val)
+            diff = pred_val - rf_pred
+            diff_str = f"+{diff:.1f}" if diff > 0 else f"{diff:.1f}"
+            is_best = mname == "Random Forest"
+            row_class = "best-row" if is_best else ""
+            badge = '<span class="badge badge-best">🏆 Digunakan App</span>' if is_best else '<span class="badge badge-poor">Simulasi</span>'
+            name_display = f"<strong>{mname}</strong>" if is_best else mname
+            results_table += f"""
+            <tr class="{row_class}">
+                <td>{name_display}</td>
+                <td><strong style="color:#64d2ff;">{pred_val:.2f} µg/m³</strong></td>
+                <td>{cat_emoji} {cat_name}</td>
+                <td style="color:{'#94a3b8' if diff == 0 else ('#ef4444' if diff > 0 else '#10b981')};">{diff_str if not is_best else "—"} µg/m³</td>
+                <td>{badge}</td>
+            </tr>
+            """
+        results_table += "</tbody></table>"
+        st.markdown(results_table, unsafe_allow_html=True)
         
         # Penjelasan perbedaan
         st.markdown(f"""
@@ -817,7 +813,7 @@ elif menu == "Demo Kasus Nyata":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 3: PANDUAN & SUMBER INPUT
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "Panduan & Sumber Input":
+elif menu == "📖 Panduan & Sumber Input":
     st.markdown('<h1 class="main-title">Panduan & Sumber Data</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Pelajari cara menggunakan dashboard AirSense serta jelajahi informasi detail mengenai dataset WHO yang digunakan untuk melatih model kami.</p>', unsafe_allow_html=True)
     
@@ -902,7 +898,7 @@ elif menu == "Panduan & Sumber Input":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 4: ALUR & PROSES DATA (ENHANCED)
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "Alur & Proses Data":
+elif menu == "⚙️ Alur & Proses Data":
     st.markdown('<h1 class="main-title">Alur & Proses Data Science</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Jelajahi seluruh tahapan pembangunan model ML ini secara interaktif — mulai dari data mentah WHO, preprocessing, pelatihan model, hingga evaluasi akhir yang komprehensif.</p>', unsafe_allow_html=True)
 
@@ -1405,7 +1401,7 @@ elif menu == "Alur & Proses Data":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 5: PENJELASAN KODE
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "Penjelasan Kode":
+elif menu == "💻 Penjelasan Kode":
     st.markdown('<h1 class="main-title">Penjelasan Kode Proyek</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Dokumentasi teknis lengkap dan mendalam untuk setiap komponen kode dalam proyek AirSense — mencakup proyek.ipynb, build_pipeline.py, generate_dark_charts.py, dan app.py ini sendiri.</p>', unsafe_allow_html=True)
     
