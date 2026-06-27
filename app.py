@@ -504,8 +504,15 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    
+    # ── MENU UTAMA PADA SIDEBAR ───────────────────────────────────────
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align:center; padding:15px 0 10px 0;">
+        <h1 style="font-family: 'Poppins', sans-serif; font-size: 2.2rem; font-weight: 700; background: linear-gradient(90deg, #64d2ff, #a180ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0;">AirSense</h1>
+        <p style="font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 2px; margin: 5px 0 20px 0;">Air Quality Predictor</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     # Navigasi Halaman Utama
     menu = st.radio(
         "PILIH HALAMAN",
@@ -513,16 +520,43 @@ with st.sidebar:
         index=0
     )
     
-    st.markdown("<br><br><br><br><br><hr style='border-color: rgba(99, 102, 241, 0.15);'>", unsafe_allow_html=True)
+    st.markdown("<hr style='border-color: rgba(255, 255, 255, 0.1); margin: 25px 0 20px 0;'>", unsafe_allow_html=True)
     
-    # Informasi Kelompok (Di paling bawah bar sidebar)
+    # --- KOTAK BARU PENGISI KEKOSONGAN (SYSTEM INFO) ---
     st.markdown("""
-    <div style="padding: 14px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 12px; text-align: center;">
-        <div style="font-family: 'Poppins', sans-serif; font-size: 0.75rem; font-weight: 600; color: #64d2ff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;">Kelompok Machine Learning</div>
-        <div style="font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; color: #ffffff; margin-bottom: 2px;">Kristian Novan</div>
-        <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px;">2802458560</div>
-        <div style="font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; color: #ffffff; margin-bottom: 2px;">Andrew Ong</div>
-        <div style="font-size: 0.75rem; color: #94a3b8;">2802420561</div>
+    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 16px; margin-bottom: 25px;">
+        <div style="font-family: 'Poppins', sans-serif; font-size: 0.85rem; font-weight: 600; color: #a180ff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            ⚙️ System Status
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 0.75rem; color: #94a3b8;">Engine</span>
+            <span style="font-size: 0.75rem; color: #e2e8f0; font-weight: 600;">Random Forest</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 0.75rem; color: #94a3b8;">Dataset</span>
+            <span style="font-size: 0.75rem; color: #64d2ff; font-weight: 600;">WHO Global</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 0.75rem; color: #94a3b8;">Server</span>
+            <span style="font-size: 0.75rem; color: #10b981; font-weight: 600;">Online 🟢</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Informasi Kelompok
+    st.markdown("""
+    <div style="padding: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(6, 182, 212, 0.05)); border: 1px solid rgba(100, 200, 255, 0.15); border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <div style="font-family: 'Poppins', sans-serif; font-size: 0.72rem; font-weight: 600; color: #64d2ff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px;">Kelompok Machine Learning</div>
+        
+        <div style="margin-bottom: 12px;">
+            <div style="font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; color: #ffffff;">Kristian Novan</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;">2802458560</div>
+        </div>
+        
+        <div>
+            <div style="font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; color: #ffffff;">Andrew Ong</div>
+            <div style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;">2802420561</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
