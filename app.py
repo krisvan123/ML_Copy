@@ -366,15 +366,14 @@ def get_svg_icon(name, size=24, color="#64d2ff"):
     return icons.get(name, "")
 
 # Helper untuk menggambar diagram alur
+# Helper untuk menggambar diagram alur
 def render_flowchart(current_step):
     steps = [
-        "Input Data",
-        "Validasi",
-        "Pembersihan",
-        "Analisis",
-        "Visualisasi",
-        "Insight",
-        "Hasil Akhir"
+        "Data Overview",
+        "Univariate",
+        "Bivariate",
+        "Correlation",
+        "Final Model"
     ]
     html = '<div class="flowchart-container">'
     for i, step in enumerate(steps):
@@ -569,67 +568,43 @@ if menu == "Beranda Utama":
     
     col1, col2, col3 = st.columns(3)
     
+    col1, col2, col3 = st.columns(3)
+    
     with col1:
         with st.container(border=True):
             st.markdown(f'<div class="card-title">{get_svg_icon("geo", 20, "#64d2ff")} <span>Letak Geografis</span></div>', unsafe_allow_html=True)
             who_region_label = st.selectbox(
-                "Wilayah WHO",
-                options=list(WHO_REGION.keys()),
-                index=0,
+                "Wilayah WHO", options=list(WHO_REGION.keys()), index=0,
                 help="Pembagian wilayah administratif dunia berdasarkan organisasi kesehatan dunia (WHO)"
             )
             who_region = WHO_REGION[who_region_label]
             
             latitude = st.number_input(
-                "Garis Lintang (Latitude)",
-                min_value=-90.0, max_value=90.0,
-                value=-6.2088, format="%.4f",
-                help="Contoh: Jakarta memiliki koordinat -6.2088"
+                "Garis Lintang (Latitude)", min_value=-90.0, max_value=90.0,
+                value=-6.2088, format="%.4f", help="Contoh: Jakarta memiliki koordinat -6.2088"
             )
             longitude = st.number_input(
-                "Garis Bujur (Longitude)",
-                min_value=-180.0, max_value=180.0,
-                value=106.8456, format="%.4f",
-                help="Contoh: Jakarta memiliki koordinat 106.8456"
+                "Garis Bujur (Longitude)", min_value=-180.0, max_value=180.0,
+                value=106.8456, format="%.4f", help="Contoh: Jakarta memiliki koordinat 106.8456"
             )
         
     with col2:
         with st.container(border=True):
             st.markdown(f'<div class="card-title">{get_svg_icon("population", 20, "#10b981")} <span>Demografi & Pos</span></div>', unsafe_allow_html=True)
-            year = st.number_input(
-                "Tahun Analisis",
-                min_value=2010, max_value=2035,
-                value=2024, step=1
-            )
-            population = st.number_input(
-                "Populasi Penduduk (Jiwa)",
-                min_value=1000, max_value=60000000,
-                value=10000000, step=100000, format="%d"
-            )
-            number_of_stations = st.number_input(
-                "Jumlah Stasiun Pemantau Udara",
-                min_value=1, max_value=300,
-                value=3, step=1
-            )
-            who_ms_label = st.radio(
-                "Status Keanggotaan Negara di WHO",
-                options=["Anggota Resmi WHO", "Non-Anggota / Pengamat"],
-                horizontal=True
-            )
+            year = st.number_input("Tahun Analisis", min_value=2010, max_value=2035, value=2024, step=1)
+            population = st.number_input("Populasi Penduduk (Jiwa)", min_value=1000, max_value=60000000, value=10000000, step=100000, format="%d")
+            number_of_stations = st.number_input("Jumlah Stasiun Pemantau Udara", min_value=1, max_value=300, value=3, step=1)
+            who_ms_label = st.radio("Status Keanggotaan Negara di WHO", options=["Anggota Resmi WHO", "Non-Anggota / Pengamat"], horizontal=True)
             who_ms = 1 if who_ms_label == "Anggota Resmi WHO" else 0
         
     with col3:
         with st.container(border=True):
             st.markdown(f'<div class="card-title">{get_svg_icon("pollutant", 20, "#a180ff")} <span>Polutan Penunjang</span></div>', unsafe_allow_html=True)
-            st.write("Mengisi data polutan penunjang di bawah ini sangat direkomendasikan untuk meningkatkan akurasi estimasi model.")
+            st.write("Mengisi data polutan penunjang direkomendasikan untuk meningkatkan akurasi estimasi model.")
             
             has_pm10 = st.checkbox("Saya memiliki data PM10", value=False)
             if has_pm10:
-                pm10 = st.number_input(
-                    "Konsentrasi PM10 (µg/m³)",
-                    min_value=0.0, max_value=500.0,
-                    value=35.0, step=0.1
-                )
+                pm10 = st.number_input("Konsentrasi PM10 (µg/m³)", min_value=0.0, max_value=500.0, value=35.0, step=0.1)
                 st.success("PM10 akan dimasukkan ke dalam analisis model.")
             else:
                 pm10 = np.nan
@@ -637,11 +612,7 @@ if menu == "Beranda Utama":
                 
             has_no2 = st.checkbox("Saya memiliki data NO₂", value=False)
             if has_no2:
-                no2 = st.number_input(
-                    "Konsentrasi NO₂ (µg/m³)",
-                    min_value=0.0, max_value=300.0,
-                    value=20.0, step=0.1
-                )
+                no2 = st.number_input("Konsentrasi NO₂ (µg/m³)", min_value=0.0, max_value=300.0, value=20.0, step=0.1)
                 st.success("NO₂ akan dimasukkan ke dalam analisis model.")
             else:
                 no2 = np.nan
@@ -889,36 +860,37 @@ elif menu == "Alur & Proses Data":
     st.markdown('<p class="subtitle">Eksplorasi dataset WHO dan evaluasi model Machine Learning Anda langkah demi langkah. Pilih tahap analisis di bawah ini untuk melihat hasil visualisasi Plotly interaktif secara bertahap.</p>', unsafe_allow_html=True)
     
     # Session State untuk alur EDA step-by-step
+    # Session State untuk alur EDA step-by-step
     if "eda_step" not in st.session_state:
         st.session_state.eda_step = 1
         
-    # Render diagram alur pemrosesan data (Step 1-7) berdasarkan step EDA saat ini
-    flow_mapping = {1: 2, 2: 4, 3: 5, 4: 6, 5: 7}
-    render_flowchart(flow_mapping[st.session_state.eda_step])
+    # Langsung panggil fungsinya dengan step yang sesuai
+    render_flowchart(st.session_state.eda_step)
     
+    # Fungsi callback agar perpindahan data instan tanpa jeda/lag
+    def ubah_step(step_baru):
+        st.session_state.eda_step = step_baru
+        
     # Kontrol Navigasi Horizontal
     st.markdown('<div style="margin-bottom:20px;"></div>', unsafe_allow_html=True)
     
     c_btn1, c_btn2, c_btn3, c_btn4, c_btn5 = st.columns(5)
     
     with c_btn1:
-        if st.button("Langkah 1: Data Overview"):
-            st.session_state.eda_step = 1
+        st.button("Langkah 1: Overview", on_click=ubah_step, args=(1,), use_container_width=True)
     with c_btn2:
-        if st.button("Langkah 2: Univariate Analysis"):
-            st.session_state.eda_step = 2
+        st.button("Langkah 2: Univariate", on_click=ubah_step, args=(2,), use_container_width=True)
     with c_btn3:
-        if st.button("Langkah 3: Bivariate Analysis"):
-            st.session_state.eda_step = 3
+        st.button("Langkah 3: Bivariate", on_click=ubah_step, args=(3,), use_container_width=True)
     with c_btn4:
-        if st.button("Langkah 4: Correlation Matrix"):
-            st.session_state.eda_step = 4
+        st.button("Langkah 4: Correlation", on_click=ubah_step, args=(4,), use_container_width=True)
     with c_btn5:
-        if st.button("Langkah 5: Final Model Insight"):
-            st.session_state.eda_step = 5
+        st.button("Langkah 5: Final Model", on_click=ubah_step, args=(5,), use_container_width=True)
 
     st.markdown("---")
 
+    st.markdown("---")
+    @st.cache_data
     # Helper functions untuk membuat plot Plotly di app.py
     def plot_plotly_missing_values(df):
         # PERBAIKAN: Hanya gunakan kolom yang terbukti ada di dataset untuk mencegah KeyError
@@ -947,7 +919,7 @@ elif menu == "Alur & Proses Data":
         )
         fig.update_traces(textposition='outside')
         return fig
-
+    @st.cache_data
     def plot_plotly_class_distribution(df):
         # PERBAIKAN: Buat kolom Kategori secara dinamis agar tidak menyebabkan KeyError
         df_temp = df.copy()
@@ -971,7 +943,7 @@ elif menu == "Alur & Proses Data":
         )
         fig.update_traces(textposition='outside')
         return fig
-
+    @st.cache_data
     def plot_plotly_pm_distributions(df):
         pm25_filtered = df[df['pm25_concentration'] < 150]['pm25_concentration'].dropna()
         pm10_filtered = df[df['pm10_concentration'] < 200]['pm10_concentration'].dropna()
@@ -991,7 +963,7 @@ elif menu == "Alur & Proses Data":
             legend=dict(x=0.8, y=0.9, bgcolor='rgba(17, 24, 39, 0.5)')
         )
         return fig
-
+    @st.cache_data
     def plot_plotly_scatter_pm(df):
         sc = df.dropna(subset=['pm10_concentration', 'pm25_concentration'])
         sc = sc[(sc['pm10_concentration'] < 200) & (sc['pm25_concentration'] < 150)]
@@ -1011,7 +983,7 @@ elif menu == "Alur & Proses Data":
             coloraxis_showscale=False
         )
         return fig
-
+    @st.cache_data
     def plot_plotly_boxplot_regions(df):
         REGION_LABEL = {
             '1_Afr': 'Afrika', '2_Amr': 'Amerika', '3_Sear': 'Asia Tenggara',
@@ -1034,7 +1006,7 @@ elif menu == "Alur & Proses Data":
             showlegend=False
         )
         return fig
-
+    @st.cache_data
     def plot_plotly_yearly_trends(df):
         yr = df.dropna(subset=['pm25_concentration']).groupby('year')['pm25_concentration'].agg(['mean', 'median']).reset_index()
         
@@ -1052,7 +1024,7 @@ elif menu == "Alur & Proses Data":
             legend=dict(x=0.8, y=0.9, bgcolor='rgba(17, 24, 39, 0.5)')
         )
         return fig
-
+    @st.cache_data
     def plot_plotly_correlation_matrix(df):
         corr_cols = ['pm25_concentration', 'pm10_concentration', 'no2_concentration',
                      'year', 'population', 'latitude', 'longitude', 'number_of_stations']
@@ -1078,7 +1050,7 @@ elif menu == "Alur & Proses Data":
             margin=dict(l=20, r=20, t=40, b=20)
         )
         return fig
-
+    @st.cache_data
     def plot_plotly_model_comparison():
         models_df = pd.DataFrame({
             'Model': ['Linear Regression', 'Ridge Regression', 'Decision Tree', 'Random Forest', 'Gradient Boosting'],
