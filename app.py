@@ -1,6 +1,6 @@
 # ===================================================================
-# APP.PY — AirSense PM2.5 Dashboard (Revisi UI/UX Final)
-# Pembuat: Kristian Novan & Andrew Ong
+# APP.PY — AirSense PM2.5 Dashboard (Final Fixed Version)
+# Pembuat: Kristian Novan
 # Mata Kuliah: COMP6577001 — Machine Learning
 # ===================================================================
 
@@ -8,6 +8,7 @@ import io
 import os
 import time
 import warnings
+from textwrap import dedent
 
 import numpy as np
 import pandas as pd
@@ -35,7 +36,7 @@ warnings.filterwarnings("ignore")
 # ─── PAGE CONFIG ──────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="AirSense | PM2.5 Predictor",
-    page_icon="🌫️",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -43,35 +44,25 @@ st.set_page_config(
 # ─── DESIGN SYSTEM ────────────────────────────────────────────────────────
 GLOBAL_CSS = """
 <style>
-/* ── Font import ── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 #MainMenu, footer, header { visibility: hidden; }
 
-/* ─── TOKEN SYSTEM ──────────────────────────────────────────────────── */
 :root {
-  /* Backgrounds */
   --bg-base:    #06080f;
   --bg-surface: #0c1018;
   --bg-card:    #111722;
   --bg-raised:  #181f2e;
   --bg-hover:   #1f2840;
-
-  /* Borders */
   --border-sub:    rgba(255,255,255,0.04);
   --border-main:   rgba(255,255,255,0.08);
   --border-accent: rgba(96,165,250,0.28);
   --border-strong: rgba(96,165,250,0.5);
-
-  /* Text */
   --text-1: #f0f4ff;
-  --text-2: #8fa3bf;
-  --text-3: #4a5a6e;
-
-  /* Accent palette — purposefully narrow */
+  --text-2: #b0c4dc;
+  --text-3: #6a7a8e;
   --blue:   #60a5fa;
   --violet: #a78bfa;
   --teal:   #2dd4bf;
@@ -79,20 +70,15 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
   --amber:  #fbbf24;
   --rose:   #f87171;
   --orange: #f97316;
-
-  /* Glow */
   --glow-blue:   rgba(96,165,250,0.14);
   --glow-violet: rgba(167,139,250,0.10);
   --glow-green:  rgba(52,211,153,0.12);
-
-  /* Radii */
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 18px;
   --r-xl: 24px;
 }
 
-/* ─── APP BACKGROUND ────────────────────────────────────────────────── */
 .stApp {
   background: var(--bg-base) !important;
   background-image:
@@ -100,7 +86,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
     radial-gradient(ellipse 55% 40% at 85% 100%,  rgba(167,139,250,0.04) 0%, transparent 65%) !important;
 }
 
-/* ─── SIDEBAR ───────────────────────────────────────────────────────── */
 [data-testid="stSidebar"] {
   background: linear-gradient(180deg, #070910 0%, #0b0e1a 100%) !important;
   border-right: 1px solid var(--border-main) !important;
@@ -108,7 +93,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 [data-testid="stSidebar"] * { color: var(--text-1) !important; }
 [data-testid="stSidebar"] .stRadio label { font-size: 0.84rem !important; }
 
-/* ─── CARDS ─────────────────────────────────────────────────────────── */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-main);
@@ -125,8 +109,6 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif !important; }
 .card-violet { border-left: 3px solid var(--violet); }
 .card-teal   { border-left: 3px solid var(--teal);   }
 .card-green  { border-left: 3px solid var(--green);  }
-.card-amber  { border-left: 3px solid var(--amber);  }
-.card-rose   { border-left: 3px solid var(--rose);   }
 
 div[data-testid="stVerticalBlockBorderWrapper"] {
   background: var(--bg-card) !important;
@@ -134,7 +116,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   border-radius: var(--r-lg) !important;
 }
 
-/* ─── TYPOGRAPHY ─────────────────────────────────────────────────────── */
 .hero-title {
   font-size: clamp(2.1rem, 4.2vw, 3.4rem);
   font-weight: 800;
@@ -163,8 +144,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   margin-bottom: 2px;
 }
 .subtitle {
-  font-size: 0.94rem;
-  color: var(--text-2);
+  font-size: 0.96rem;
+  color: var(--text-1);
   line-height: 1.7;
   max-width: 700px;
 }
@@ -179,7 +160,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 .mono { font-family: 'JetBrains Mono', monospace; }
 
-/* ─── HERO ───────────────────────────────────────────────────────────── */
 .hero-wrap {
   background: var(--bg-card);
   border: 1px solid var(--border-main);
@@ -199,7 +179,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   pointer-events: none;
 }
 
-/* ─── KPI STRIP ──────────────────────────────────────────────────────── */
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -224,13 +203,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .kpi-lbl {
   font-size: 0.68rem;
   font-weight: 600;
-  color: var(--text-3);
+  color: var(--text-2);
   text-transform: uppercase;
   letter-spacing: 1.2px;
   margin-top: 6px;
 }
 
-/* ─── AQI SCALE ──────────────────────────────────────────────────────── */
 .aqi-wrap {
   background: var(--bg-raised);
   border: 1px solid var(--border-main);
@@ -238,7 +216,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   padding: 22px 26px;
   margin: 20px 0;
 }
-.aqi-lbl { font-size: 0.84rem; color: var(--text-2); margin-bottom: 14px; }
+.aqi-lbl { font-size: 0.84rem; color: var(--text-1); margin-bottom: 14px; }
 .aqi-bar {
   position: relative;
   height: 14px;
@@ -267,10 +245,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   margin-top: 12px;
   font-size: 0.69rem;
   font-weight: 500;
-  color: var(--text-2);
+  color: var(--text-1);
 }
 
-/* ─── RESULT BANNER ──────────────────────────────────────────────────── */
 .result-banner {
   border-radius: var(--r-md);
   padding: 22px 26px;
@@ -287,13 +264,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   flex-shrink: 0;
 }
 .banner-title { font-size: 1.15rem; font-weight: 700; color: var(--text-1); margin-bottom: 5px; }
-.banner-desc  { font-size: 0.87rem; line-height: 1.65; color: var(--text-2); }
+.banner-desc  { font-size: 0.87rem; line-height: 1.65; color: var(--text-1); }
 .banner-good     { background: rgba(52,211,153,0.07);  border: 1px solid rgba(52,211,153,0.22); }
 .banner-moderate { background: rgba(251,191,36,0.07);  border: 1px solid rgba(251,191,36,0.22); }
 .banner-unhealthy{ background: rgba(249,115,22,0.07);  border: 1px solid rgba(249,115,22,0.22); }
 .banner-hazardous{ background: rgba(239,68,68,0.07);   border: 1px solid rgba(239,68,68,0.22); }
 
-/* ─── MODERN TABLE ────────────────────────────────────────────────────── */
 .tbl-wrap {
   overflow-x: auto;
   border-radius: var(--r-md);
@@ -325,8 +301,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   white-space: nowrap;
   user-select: none;
 }
-.modern-tbl th:first-child { border-radius: var(--r-md) 0 0 0; }
-.modern-tbl th:last-child  { border-radius: 0 var(--r-md) 0 0; }
 .modern-tbl td {
   padding: 12px 18px;
   border-bottom: 1px solid var(--border-sub);
@@ -347,7 +321,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .modern-tbl td.center { text-align: center; }
 .modern-tbl td.right  { text-align: right; }
 
-/* ─── BADGES ─────────────────────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -362,11 +335,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 }
 .badge-best  { background: rgba(52,211,153,0.15); color: #34d399; border: 1px solid rgba(52,211,153,0.3); }
 .badge-good  { background: rgba(96,165,250,0.13); color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
-.badge-sim   { background: rgba(107,119,145,0.15); color: #8fa3bf; border: 1px solid rgba(107,119,145,0.25); }
+.badge-sim   { background: rgba(107,119,145,0.15); color: #b0c4dc; border: 1px solid rgba(107,119,145,0.25); }
 .badge-used  { background: rgba(96,165,250,0.13); color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
 .badge-ok    { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
 
-/* ─── PIPE STEPS ─────────────────────────────────────────────────────── */
 .pipe-step {
   background: var(--bg-card);
   border: 1px solid var(--border-main);
@@ -388,7 +360,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .pipe-title { font-weight: 700; color: var(--text-1); font-size: 0.97rem; margin-bottom: 6px; }
 .pipe-desc  { font-size: 0.83rem; color: var(--text-2); line-height: 1.65; }
 
-/* ─── FLOWCHART ──────────────────────────────────────────────────────── */
 .flowchart {
   display: flex;
   align-items: center;
@@ -426,7 +397,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .fc-step.done   .fc-label { color: var(--green); }
 .fc-arrow { color: var(--text-3); font-size: 1rem; flex-shrink: 0; padding: 0 2px; }
 
-/* ─── GUIDE CARD ─────────────────────────────────────────────────────── */
 .guide-card {
   background: var(--bg-card);
   border: 1px solid var(--border-main);
@@ -436,9 +406,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   margin-bottom: 12px;
 }
 .guide-title { font-weight: 700; color: var(--text-1); font-size: 0.93rem; margin-bottom: 8px; }
-.guide-body  { font-size: 0.84rem; color: var(--text-2); line-height: 1.7; }
+.guide-body  { font-size: 0.84rem; color: var(--text-1); line-height: 1.7; }
 
-/* ─── INSIGHT BOX ────────────────────────────────────────────────────── */
 .insight-box {
   background: rgba(167,139,250,0.05);
   border: 1px solid rgba(167,139,250,0.18);
@@ -447,9 +416,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   margin: 16px 0;
 }
 .insight-title { color: var(--violet); font-weight: 700; font-size: 0.88rem; margin-bottom: 8px; }
-.insight-box p { color: var(--text-2); font-size: 0.85rem; line-height: 1.7; margin: 0; }
+.insight-box p { color: var(--text-1); font-size: 0.85rem; line-height: 1.75; margin: 0; }
 
-/* ─── CALLOUT ────────────────────────────────────────────────────────── */
 .callout {
   background: rgba(96,165,250,0.05);
   border-left: 2px solid var(--blue);
@@ -457,12 +425,11 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   padding: 12px 18px;
   margin: 12px 0;
   font-size: 0.84rem;
-  color: #93b4d6;
+  color: var(--text-1);
   line-height: 1.65;
 }
 .callout strong { color: var(--text-1); }
 
-/* ─── WARNING BOX ────────────────────────────────────────────────────── */
 .warn-box {
   background: rgba(251,191,36,0.05);
   border-left: 2px solid var(--amber);
@@ -470,11 +437,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   padding: 12px 18px;
   margin: 12px 0;
   font-size: 0.84rem;
-  color: #c8a84b;
+  color: #e0b84b;
   line-height: 1.65;
 }
 
-/* ─── POINT ITEM ─────────────────────────────────────────────────────── */
 .pt-item {
   background: rgba(255,255,255,0.02);
   border: 1px solid var(--border-sub);
@@ -483,9 +449,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   margin-bottom: 8px;
 }
 .pt-title { font-size: 0.83rem; font-weight: 700; color: var(--text-1); margin-bottom: 4px; }
-.pt-body  { font-size: 0.8rem;  color: var(--text-2); line-height: 1.65; }
+.pt-body  { font-size: 0.8rem;  color: var(--text-1); line-height: 1.65; }
 
-/* ─── CODE BLOCK ─────────────────────────────────────────────────────── */
 .code-wrap {
   background: #0d1117;
   border: 1px solid #21262d;
@@ -500,7 +465,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   white-space: pre;
 }
 
-/* ─── STATUS CHIP ────────────────────────────────────────────────────── */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -513,7 +477,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 .chip-online { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.25); }
 .chip-info   { background: rgba(96,165,250,0.1); color: #60a5fa; border: 1px solid rgba(96,165,250,0.25); }
 
-/* ─── SIDEBAR CARD ───────────────────────────────────────────────────── */
 .sb-card {
   background: rgba(255,255,255,0.025);
   border: 1px solid var(--border-sub);
@@ -528,13 +491,11 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   margin-bottom: 8px;
 }
 .sb-row:last-child { margin-bottom: 0; }
-.sb-key { font-size: 0.74rem; color: var(--text-3); }
+.sb-key { font-size: 0.74rem; color: var(--text-2); }
 .sb-val { font-size: 0.74rem; font-weight: 600; color: var(--text-1); }
 
-/* ─── DIVIDER ────────────────────────────────────────────────────────── */
 .div-line { border-top: 1px solid var(--border-sub); margin: 20px 0; }
 
-/* ─── BUTTONS ────────────────────────────────────────────────────────── */
 .stButton > button {
   background: linear-gradient(135deg, #3b4fd9 0%, #0ea5e9 100%) !important;
   color: #fff !important;
@@ -554,7 +515,6 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   box-shadow: 0 7px 24px rgba(59,79,217,0.48) !important;
 }
 
-/* ─── INPUTS ─────────────────────────────────────────────────────────── */
 .stSelectbox > div > div,
 .stNumberInput > div > div > input,
 .stTextInput > div > div > input {
@@ -564,17 +524,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
   color: var(--text-1) !important;
   font-family: 'Inter', sans-serif !important;
 }
-.stSelectbox > div > div:focus-within,
-.stNumberInput > div > div > input:focus {
-  border-color: var(--blue) !important;
-  box-shadow: 0 0 0 2.5px rgba(96,165,250,0.18) !important;
-}
-label { color: var(--text-2) !important; font-size: 0.83rem !important; }
+label { color: var(--text-1) !important; font-size: 0.83rem !important; }
 
-/* ─── RADIO ──────────────────────────────────────────────────────────── */
 .stRadio [data-testid="stMarkdownContainer"] p { font-size: 0.85rem; color: var(--text-1); }
 
-/* ─── TABS ───────────────────────────────────────────────────────────── */
 .stTabs [data-baseweb="tab-list"] {
   background: var(--bg-card);
   border-radius: var(--r-md) var(--r-md) 0 0;
@@ -599,13 +552,11 @@ label { color: var(--text-2) !important; font-size: 0.83rem !important; }
   font-weight: 700 !important;
 }
 
-/* ─── MARKDOWN TEXT ──────────────────────────────────────────────────── */
-[data-testid="stMarkdownContainer"] p  { color: var(--text-2); line-height: 1.7; }
+[data-testid="stMarkdownContainer"] p  { color: var(--text-1); line-height: 1.7; }
 [data-testid="stMarkdownContainer"] strong { color: var(--text-1); }
 hr { border-color: var(--border-sub) !important; }
 .stCheckbox label p { font-size: 0.85rem; color: var(--text-1); }
 
-/* ─── EXPANDER ───────────────────────────────────────────────────────── */
 .streamlit-expanderHeader {
   background: var(--bg-raised) !important;
   border: 1px solid var(--border-main) !important;
@@ -620,13 +571,6 @@ hr { border-color: var(--border-sub) !important; }
   border-radius: 0 0 var(--r-sm) var(--r-sm) !important;
 }
 
-/* ─── EXPORT SECTION ─────────────────────────────────────────────────── */
-.export-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
 .stDownloadButton > button {
   background: var(--bg-raised) !important;
   color: var(--text-1) !important;
@@ -644,7 +588,6 @@ hr { border-color: var(--border-sub) !important; }
   color: var(--blue) !important;
 }
 
-/* ─── FEATURE IMPORTANCE BAR ─────────────────────────────────────────── */
 .fi-row {
   display: flex;
   align-items: center;
@@ -656,9 +599,8 @@ hr { border-color: var(--border-sub) !important; }
 .fi-label { font-size: 0.82rem; color: var(--text-1); min-width: 150px; font-weight: 500; }
 .fi-bar-wrap { flex: 1; height: 8px; background: var(--bg-raised); border-radius: 4px; overflow: hidden; }
 .fi-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #34d399, #60a5fa); }
-.fi-pct { font-size: 0.78rem; color: var(--text-2); min-width: 48px; text-align: right; font-family: 'JetBrains Mono', monospace; }
+.fi-pct { font-size: 0.78rem; color: var(--text-1); min-width: 48px; text-align: right; font-family: 'JetBrains Mono', monospace; }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .hero-wrap { padding: 28px 24px; }
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -666,36 +608,7 @@ hr { border-color: var(--border-sub) !important; }
 }
 </style>
 """
-
 st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
-
-
-# ─── SVG ICONS ────────────────────────────────────────────────────────────
-def ic(name: str, size: int = 16, color: str = "currentColor") -> str:
-    _paths = {
-        "wind":     f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>',
-        "pin":      f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
-        "users":    f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-        "activity": f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
-        "cpu":      f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>',
-        "book":     f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
-        "db":       f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
-        "code":     f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
-        "info":     f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
-        "globe":    f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
-        "trend":    f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>',
-        "layers":   f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
-        "target":   f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
-        "filter":   f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
-        "bar":      f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
-        "download": f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-        "eye":      f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
-        "shield":   f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-        "check":    f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
-        "alert":    f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><triangle points="10.29 3.86 1.82 18 22.18 18 10.29 3.86"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-        "sparkle":  f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>',
-    }
-    return _paths.get(name, "")
 
 
 # ─── CONSTANTS ────────────────────────────────────────────────────────────
@@ -743,16 +656,16 @@ SIM_MULT = {
 }
 
 DEMO_CASES = [
-    {"city": "Jakarta, Indonesia",  "region": "Asia Tenggara (SEARO)", "year": 2023, "latitude": -6.2088,  "longitude": 106.8456, "pm10": 65.0, "no2": 38.5, "stations": 12, "who_ms": 1, "population": 10562088, "who_region": "3_Sear", "real_pm25": "~45 µg/m³", "context": "Ibukota Indonesia dengan kemacetan parah dan kawasan industri besar di sekitar teluk."},
-    {"city": "Stockholm, Swedia",   "region": "Eropa (EURO)",          "year": 2023, "latitude": 59.3293, "longitude":  18.0686, "pm10": 12.0, "no2": 14.0, "stations": 25, "who_ms": 1, "population":  975904, "who_region": "4_Eur", "real_pm25": "~5 µg/m³",  "context": "Kota Nordik dengan standar emisi sangat ketat dan dominasi energi terbarukan."},
-    {"city": "Delhi, India",        "region": "Asia Tenggara (SEARO)", "year": 2023, "latitude": 28.6139, "longitude":  77.2090, "pm10": 220.0,"no2": 68.0, "stations": 40, "who_ms": 1, "population": 32941309, "who_region": "3_Sear", "real_pm25": "~92 µg/m³", "context": "Konsisten masuk daftar kota paling terpolusi. Musim dingin diperburuk pembakaran ladang."},
-    {"city": "Oslo, Norwegia",      "region": "Eropa (EURO)",          "year": 2023, "latitude": 59.9139, "longitude":  10.7522, "pm10": 9.5,  "no2": 11.0, "stations": 18, "who_ms": 1, "population":  673469, "who_region": "4_Eur", "real_pm25": "~4.5 µg/m³","context": "Salah satu kota paling ramah lingkungan, mayoritas kendaraan sudah listrik."},
-    {"city": "Shanghai, China",     "region": "Pasifik Barat (WPRO)",  "year": 2023, "latitude": 31.2304, "longitude": 121.4737, "pm10": 78.0, "no2": 48.0, "stations": 55, "who_ms": 1, "population": 26317104, "who_region": "6_Wpr", "real_pm25": "~30 µg/m³", "context": "Kebijakan lingkungan agresif sejak 2015 mulai berhasil menekan tingkat polusi."},
-    {"city": "Nairobi, Kenya",      "region": "Afrika (AFRO)",         "year": 2023, "latitude": -1.2921, "longitude":  36.8219, "pm10": 42.0, "no2": 22.0, "stations":  4, "who_ms": 1, "population":  4397073, "who_region": "1_Afr", "real_pm25": "~18 µg/m³", "context": "Kendaraan tua dan pembakaran sampah terbuka menjadi sumber polusi utama."},
-    {"city": "Los Angeles, AS",     "region": "Amerika (AMRO)",        "year": 2023, "latitude": 34.0522, "longitude":-118.2437, "pm10": 30.0, "no2": 35.0, "stations": 48, "who_ms": 1, "population":  3898747, "who_region": "2_Amr", "real_pm25": "~14 µg/m³", "context": "Regulasi California (CARB) berhasil drastis menekan polusi sejak era 1970-an."},
-    {"city": "Kairo, Mesir",        "region": "Mediterania Timur (EMRO)","year": 2023,"latitude": 30.0444, "longitude": 31.2357, "pm10": 95.0, "no2": 42.0, "stations":  6, "who_ms": 1, "population": 21323000, "who_region": "5_Emr", "real_pm25": "~55 µg/m³", "context": "Debu pasir Sahara ditambah emisi kendaraan tua menghasilkan polusi persisten."},
-    {"city": "São Paulo, Brasil",   "region": "Amerika (AMRO)",        "year": 2023, "latitude":-23.5505, "longitude": -46.6333, "pm10": 35.0, "no2": 36.0, "stations": 30, "who_ms": 1, "population": 12325232, "who_region": "2_Amr", "real_pm25": "~17 µg/m³", "context": "Program biofuel nasional Brasil membantu menekan emisi dari sektor transportasi."},
-    {"city": "Riyadh, Arab Saudi",  "region": "Mediterania Timur (EMRO)","year": 2023,"latitude": 24.6877, "longitude": 46.7219, "pm10": 110.0,"no2": 30.0, "stations":  8, "who_ms": 1, "population":  7676654, "who_region": "5_Emr", "real_pm25": "~62 µg/m³", "context": "Badai pasir regional dikombinasi industri minyak bumi menciptakan polusi konsisten tinggi."},
+    {"city": "Jakarta, Indonesia",  "region": "Asia Tenggara (SEARO)", "year": 2023, "latitude": -6.2088,  "longitude": 106.8456, "pm10": 65.0, "no2": 38.5, "stations": 12, "who_ms": 1, "population": 10562088, "who_region": "3_Sear", "real_pm25": "~45 ug/m3", "context": "Ibukota Indonesia dengan kemacetan parah dan kawasan industri besar di sekitar teluk."},
+    {"city": "Stockholm, Swedia",   "region": "Eropa (EURO)",          "year": 2023, "latitude": 59.3293, "longitude":  18.0686, "pm10": 12.0, "no2": 14.0, "stations": 25, "who_ms": 1, "population":  975904, "who_region": "4_Eur", "real_pm25": "~5 ug/m3",  "context": "Kota Nordik dengan standar emisi sangat ketat dan dominasi energi terbarukan."},
+    {"city": "Delhi, India",        "region": "Asia Tenggara (SEARO)", "year": 2023, "latitude": 28.6139, "longitude":  77.2090, "pm10": 220.0,"no2": 68.0, "stations": 40, "who_ms": 1, "population": 32941309, "who_region": "3_Sear", "real_pm25": "~92 ug/m3", "context": "Konsisten masuk daftar kota paling terpolusi. Musim dingin diperburuk pembakaran ladang."},
+    {"city": "Oslo, Norwegia",      "region": "Eropa (EURO)",          "year": 2023, "latitude": 59.9139, "longitude":  10.7522, "pm10": 9.5,  "no2": 11.0, "stations": 18, "who_ms": 1, "population":  673469, "who_region": "4_Eur", "real_pm25": "~4.5 ug/m3","context": "Salah satu kota paling ramah lingkungan, mayoritas kendaraan sudah listrik."},
+    {"city": "Shanghai, China",     "region": "Pasifik Barat (WPRO)",  "year": 2023, "latitude": 31.2304, "longitude": 121.4737, "pm10": 78.0, "no2": 48.0, "stations": 55, "who_ms": 1, "population": 26317104, "who_region": "6_Wpr", "real_pm25": "~30 ug/m3", "context": "Kebijakan lingkungan agresif sejak 2015 mulai berhasil menekan tingkat polusi."},
+    {"city": "Nairobi, Kenya",      "region": "Afrika (AFRO)",         "year": 2023, "latitude": -1.2921, "longitude":  36.8219, "pm10": 42.0, "no2": 22.0, "stations":  4, "who_ms": 1, "population":  4397073, "who_region": "1_Afr", "real_pm25": "~18 ug/m3", "context": "Kendaraan tua dan pembakaran sampah terbuka menjadi sumber polusi utama."},
+    {"city": "Los Angeles, AS",     "region": "Amerika (AMRO)",        "year": 2023, "latitude": 34.0522, "longitude":-118.2437, "pm10": 30.0, "no2": 35.0, "stations": 48, "who_ms": 1, "population":  3898747, "who_region": "2_Amr", "real_pm25": "~14 ug/m3", "context": "Regulasi California (CARB) berhasil drastis menekan polusi sejak era 1970-an."},
+    {"city": "Kairo, Mesir",        "region": "Mediterania Timur (EMRO)","year": 2023,"latitude": 30.0444, "longitude": 31.2357, "pm10": 95.0, "no2": 42.0, "stations":  6, "who_ms": 1, "population": 21323000, "who_region": "5_Emr", "real_pm25": "~55 ug/m3", "context": "Debu pasir Sahara ditambah emisi kendaraan tua menghasilkan polusi persisten."},
+    {"city": "Sao Paulo, Brasil",   "region": "Amerika (AMRO)",        "year": 2023, "latitude":-23.5505, "longitude": -46.6333, "pm10": 35.0, "no2": 36.0, "stations": 30, "who_ms": 1, "population": 12325232, "who_region": "2_Amr", "real_pm25": "~17 ug/m3", "context": "Program biofuel nasional Brasil membantu menekan emisi dari sektor transportasi."},
+    {"city": "Riyadh, Arab Saudi",  "region": "Mediterania Timur (EMRO)","year": 2023,"latitude": 24.6877, "longitude": 46.7219, "pm10": 110.0,"no2": 30.0, "stations":  8, "who_ms": 1, "population":  7676654, "who_region": "5_Emr", "real_pm25": "~62 ug/m3", "context": "Badai pasir regional dikombinasi industri minyak bumi menciptakan polusi konsisten tinggi."},
 ]
 
 
@@ -792,7 +705,7 @@ def load_model():
     m = _train_fallback()
     if m:
         return m
-    st.error("❌ Model tidak dapat dimuat. Pastikan pipeline_pm25_final.pkl atau action2024/train.csv tersedia.")
+    st.error("Model tidak dapat dimuat. Pastikan pipeline_pm25_final.pkl atau action2024/train.csv tersedia.")
     st.stop()
 
 
@@ -828,11 +741,11 @@ def do_predict(year, lat, lon, pm10, no2, stations, who_ms, pop, region_code):
 
 def classify(v):
     if v <= 12.0:
-        return ("Sehat",   "banner-good",      "#34d399", min(v / 12 * 20, 20),
+        return ("Sehat", "banner-good", "#34d399", min(v / 12 * 20, 20),
                 "Kualitas udara sangat baik. Aman untuk semua aktivitas luar ruangan tanpa batasan.",
                 "#34d399")
     elif v <= 35.4:
-        return ("Sedang",  "banner-moderate",  "#fbbf24", 20 + min((v - 12) / 23.4 * 25, 25),
+        return ("Sedang", "banner-moderate", "#fbbf24", 20 + min((v - 12) / 23.4 * 25, 25),
                 "Kelompok sensitif (asma, lansia, anak-anak) disarankan mengurangi aktivitas fisik berat di luar ruangan.",
                 "#fbbf24")
     elif v <= 55.4:
@@ -857,14 +770,13 @@ def flowchart_html(current):
     for i, s in enumerate(steps):
         n = i + 1
         cls = "active" if n == current else ("done" if n < current else "")
-        ic_inner = "✓" if n < current else str(n)
+        ic_inner = "v" if n < current else str(n)
         h += f'<div class="fc-step {cls}"><div class="fc-icon">{ic_inner}</div><div class="fc-label">{s}</div></div>'
         if i < len(steps) - 1:
-            h += '<div class="fc-arrow">→</div>'
+            h += '<div class="fc-arrow">-&gt;</div>'
     return h + "</div>"
 
 
-# ─── EXPORT HELPERS ───────────────────────────────────────────────────────
 def make_csv(data: dict) -> bytes:
     df = pd.DataFrame([data])
     return df.to_csv(index=False).encode("utf-8")
@@ -873,8 +785,15 @@ def make_csv(data: dict) -> bytes:
 def make_excel(data: dict) -> bytes:
     df = pd.DataFrame([data])
     buf = io.BytesIO()
-    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Prediction")
+    try:
+        with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Prediction")
+    except Exception:
+        try:
+            with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
+                df.to_excel(writer, index=False, sheet_name="Prediction")
+        except Exception:
+            return df.to_csv(index=False).encode("utf-8")
     return buf.getvalue()
 
 
@@ -885,57 +804,48 @@ def make_report_csv(rows: list) -> bytes:
     return df.to_csv(index=False).encode("utf-8")
 
 
-# ─── PLOTLY THEME DEFAULTS ─────────────────────────────────────────────────
 PLOTLY_BASE = dict(
     template="plotly_dark",
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(17,23,34,0.7)",
-    font=dict(family="Inter", color="#8fa3bf"),
+    font=dict(family="Inter", color="#b0c4dc"),
 )
-
-
-def styled_fig(**kwargs):
-    fig = go.Figure(**kwargs)
-    fig.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=10, t=40, b=10))
-    return fig
 
 
 # ─── SIDEBAR ──────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown(f"""
+    st.markdown(dedent("""
     <div style="padding:22px 0 18px;text-align:center;">
       <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:6px;">
-        {ic("wind", 26, "#60a5fa")}
         <span style="font-size:1.55rem;font-weight:800;letter-spacing:-1px;
           background:linear-gradient(135deg,#60a5fa,#a78bfa);
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;">AirSense</span>
       </div>
-      <div style="font-size:0.63rem;color:#4a5a6e;text-transform:uppercase;letter-spacing:2.5px;">
+      <div style="font-size:0.63rem;color:#6a7a8e;text-transform:uppercase;letter-spacing:2.5px;">
         Air Quality Predictor
       </div>
     </div>
     <div class="div-line"></div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     menu = st.radio("NAVIGASI", [
-        "🏠  Beranda & Prediksi",
-        "🌍  Demo Kasus Nyata",
-        "✨  Explainability AI",
-        "📘  Panduan & Dataset",
-        "📊  Alur Proses Data",
-        "💻  Penjelasan Kode",
+        "Beranda & Prediksi",
+        "Demo Kasus Nyata",
+        "Explainability AI",
+        "Panduan & Dataset",
+        "Alur Proses Data",
+        "Penjelasan Kode",
     ], index=0, label_visibility="collapsed")
 
     st.markdown('<div class="div-line"></div>', unsafe_allow_html=True)
 
-    # System status card
     status_color = "#34d399" if model is not None else "#f87171"
     status_text  = "Online" if model is not None else "Error"
     data_text    = f"{len(df_data):,} baris" if df_data is not None else "Tidak tersedia"
-    st.markdown(f"""
+    st.markdown(dedent(f"""
     <div class="sb-card">
       <div style="font-size:0.63rem;font-weight:700;color:#60a5fa;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">
-        {ic("cpu", 11, "#60a5fa")} Status Sistem
+        Status Sistem
       </div>
       <div class="sb-row">
         <span class="sb-key">Model</span>
@@ -946,12 +856,12 @@ with st.sidebar:
         <span class="sb-val" style="color:#60a5fa;">{data_text}</span>
       </div>
       <div class="sb-row">
-        <span class="sb-key">R² Score</span>
+        <span class="sb-key">R2 Score</span>
         <span class="sb-val" style="color:#34d399;">89.0%</span>
       </div>
       <div class="sb-row">
         <span class="sb-key">Status</span>
-        <span class="chip chip-online">● {status_text}</span>
+        <span class="chip chip-online">&#9679; {status_text}</span>
       </div>
     </div>
     <div class="sb-card">
@@ -959,33 +869,32 @@ with st.sidebar:
       <div class="sb-row">
         <div>
           <div style="font-size:0.86rem;font-weight:600;color:#f0f4ff;">Kristian Novan</div>
-          <div style="font-size:0.70rem;color:#4a5a6e;font-family:'JetBrains Mono',monospace;">2802458560</div>
+          <div style="font-size:0.70rem;color:#6a7a8e;font-family:'JetBrains Mono',monospace;">2802458560</div>
         </div>
       </div>
       <div class="sb-row">
         <div>
           <div style="font-size:0.86rem;font-weight:600;color:#f0f4ff;">Andrew Ong</div>
-          <div style="font-size:0.70rem;color:#4a5a6e;font-family:'JetBrains Mono',monospace;">2802420561</div>
+          <div style="font-size:0.70rem;color:#6a7a8e;font-family:'JetBrains Mono',monospace;">2802420561</div>
         </div>
       </div>
-      <div style="margin-top:10px;font-size:0.68rem;color:#4a5a6e;">COMP6577001 — Machine Learning</div>
+      <div style="margin-top:10px;font-size:0.68rem;color:#6a7a8e;">COMP6577001 -- Machine Learning</div>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PAGE 1 — BERANDA & PREDIKSI
+# PAGE 1 -- BERANDA & PREDIKSI
 # ═══════════════════════════════════════════════════════════════════════════
-if "🏠" in menu:
+if "Beranda" in menu:
 
-    # Hero
-    st.markdown(f"""
+    st.markdown(dedent("""
     <div class="hero-wrap">
-      <div class="eyebrow">{ic("wind", 13, "#60a5fa")} Platform Prediksi Kualitas Udara Global</div>
+      <div class="eyebrow">Platform Prediksi Kualitas Udara Global</div>
       <div class="hero-title">AirSense Dashboard</div>
       <p class="subtitle" style="margin-top:14px;">
         Estimasi konsentrasi PM2.5 berbasis Machine Learning dari data historis WHO.
-        Masukkan parameter wilayah Anda — tanpa sensor PM2.5 di lapangan.
+        Masukkan parameter wilayah Anda untuk mendapatkan prediksi tanpa sensor PM2.5 di lapangan.
       </p>
       <div class="kpi-grid">
         <div class="kpi-box">
@@ -994,11 +903,11 @@ if "🏠" in menu:
         </div>
         <div class="kpi-box">
           <div class="kpi-val">89.0%</div>
-          <div class="kpi-lbl">Akurasi R²</div>
+          <div class="kpi-lbl">Akurasi R2</div>
         </div>
         <div class="kpi-box">
           <div class="kpi-val">2.68</div>
-          <div class="kpi-lbl">MAE µg/m³</div>
+          <div class="kpi-lbl">MAE ug/m3</div>
         </div>
         <div class="kpi-box">
           <div class="kpi-val">9</div>
@@ -1006,19 +915,16 @@ if "🏠" in menu:
         </div>
       </div>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
-    # ── Input Form ──────────────────────────────────────────────────────
-    st.markdown(f"""
-    <div class="eyebrow" style="margin-top:4px;">{ic("filter", 12, "#60a5fa")} Parameter Masukan</div>
-    <div class="section-title" style="margin-bottom:16px;">Konfigurasi Analisis</div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow" style="margin-top:4px;">Parameter Masukan</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title" style="margin-bottom:16px;">Konfigurasi Analisis</div>', unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
         with st.container(border=True):
-            st.markdown(f'<div class="card-title">{ic("pin", 15, "#60a5fa")} Lokasi Geografis</div>', unsafe_allow_html=True)
+            st.markdown('<div class="card-title">Lokasi Geografis</div>', unsafe_allow_html=True)
             who_region_label = st.selectbox("Wilayah WHO", list(WHO_REGION.keys()), index=0)
             who_region_code  = WHO_REGION[who_region_label]
             latitude  = st.number_input("Latitude",  min_value=-90.0,  max_value=90.0,  value=-6.2088,  format="%.4f")
@@ -1026,7 +932,7 @@ if "🏠" in menu:
 
     with c2:
         with st.container(border=True):
-            st.markdown(f'<div class="card-title">{ic("users", 15, "#a78bfa")} Demografi & Infrastruktur</div>', unsafe_allow_html=True)
+            st.markdown('<div class="card-title">Demografi & Infrastruktur</div>', unsafe_allow_html=True)
             year        = st.number_input("Tahun Analisis",          min_value=2010, max_value=2035, value=2024, step=1)
             population  = st.number_input("Populasi (Jiwa)",         min_value=1000, max_value=60_000_000, value=10_000_000, step=100_000, format="%d")
             num_stations= st.number_input("Jumlah Stasiun Pemantau", min_value=1,    max_value=300, value=3)
@@ -1035,82 +941,78 @@ if "🏠" in menu:
 
     with c3:
         with st.container(border=True):
-            st.markdown(f'<div class="card-title">{ic("activity", 15, "#2dd4bf")} Polutan Pendukung (Opsional)</div>', unsafe_allow_html=True)
+            st.markdown('<div class="card-title">Polutan Pendukung (Opsional)</div>', unsafe_allow_html=True)
             has_pm10 = st.checkbox("Tersedia data PM10")
-            pm10 = st.number_input("PM10 (µg/m³)", 0.0, 500.0, 35.0, 0.1) if has_pm10 else np.nan
+            pm10 = st.number_input("PM10 (ug/m3)", 0.0, 500.0, 35.0, 0.1) if has_pm10 else np.nan
             if has_pm10:
-                st.success("PM10 aktif — digunakan dalam model.")
+                st.success("PM10 aktif -- digunakan dalam model.")
             else:
-                st.info("PM10 kosong → diimputasi dari median historis.")
+                st.info("PM10 kosong -- diimputasi dari median historis.")
 
-            has_no2 = st.checkbox("Tersedia data NO₂")
-            no2 = st.number_input("NO₂ (µg/m³)", 0.0, 300.0, 20.0, 0.1) if has_no2 else np.nan
+            has_no2 = st.checkbox("Tersedia data NO2")
+            no2 = st.number_input("NO2 (ug/m3)", 0.0, 300.0, 20.0, 0.1) if has_no2 else np.nan
             if has_no2:
-                st.success("NO₂ aktif — digunakan dalam model.")
+                st.success("NO2 aktif -- digunakan dalam model.")
             else:
-                st.info("NO₂ kosong → diimputasi dari median historis.")
+                st.info("NO2 kosong -- diimputasi dari median historis.")
 
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
     _, btn_col, _ = st.columns([2, 1, 2])
     with btn_col:
-        run = st.button("🔍  Analisis Kualitas Udara")
+        run = st.button("Analisis Kualitas Udara")
 
-    # ── Results ─────────────────────────────────────────────────────────
     if run:
-        with st.spinner("Memproses prediksi…"):
+        with st.spinner("Memproses prediksi..."):
             pred = do_predict(year, latitude, longitude, pm10, no2, num_stations, who_ms, population, who_region_code)
-            time.sleep(0.3)   # brief delay for animation feel
+            time.sleep(0.3)
 
         cat, banner_cls, color, pct, rec, _ = classify(pred)
 
         st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
-        st.markdown(f"""
-        <div class="eyebrow">{ic("target", 12, "#60a5fa")} Hasil Prediksi</div>
-        <div class="section-title" style="margin-bottom:14px;">Estimasi Konsentrasi PM2.5</div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="eyebrow">Hasil Prediksi</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title" style="margin-bottom:14px;">Estimasi Konsentrasi PM2.5</div>', unsafe_allow_html=True)
 
-        # AQI scale
-        st.markdown(f"""
+        st.markdown(dedent(f"""
         <div class="aqi-wrap">
           <div class="aqi-lbl">
-            Posisi pada skala PM2.5 —
-            <strong style="color:{color};font-size:1rem;">{pred:.2f} µg/m³</strong>
+            Posisi pada skala PM2.5 --
+            <strong style="color:{color};font-size:1rem;">{pred:.2f} ug/m3</strong>
           </div>
           <div class="aqi-bar"><div class="aqi-marker" style="left:{pct}%;"></div></div>
           <div class="aqi-scale-labels">
-            <span style="color:#34d399;">✦ Sehat 0–12</span>
-            <span style="color:#fbbf24;">✦ Sedang 12.1–35.4</span>
-            <span style="color:#f97316;">✦ Sensitif 35.5–55.4</span>
-            <span style="color:#ef4444;">✦ Berbahaya 55.4+</span>
+            <span style="color:#34d399;">Sehat 0-12</span>
+            <span style="color:#fbbf24;">Sedang 12.1-35.4</span>
+            <span style="color:#f97316;">Sensitif 35.5-55.4</span>
+            <span style="color:#ef4444;">Berbahaya 55.4+</span>
           </div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-        # Result banner
-        st.markdown(f"""
+        st.markdown(dedent(f"""
         <div class="result-banner {banner_cls}">
           <div class="banner-icon">{shield_svg(color)}</div>
           <div>
-            <div class="banner-title">{cat} — {pred:.2f} µg/m³</div>
+            <div class="banner-title">{cat} -- {pred:.2f} ug/m3</div>
             <div class="banner-desc">{rec}</div>
           </div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-        # Detail + comparison chart
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
         r1, r2 = st.columns(2)
 
         with r1:
-            st.markdown(f"""
+            pm10_display = f"{pm10:.1f} ug/m3" if not np.isnan(pm10) else "-- (imputasi median)"
+            no2_display  = f"{no2:.1f} ug/m3"  if not np.isnan(no2)  else "-- (imputasi median)"
+            st.markdown(dedent(f"""
             <div class="card card-blue">
-              <div class="card-title">{ic("bar", 15, "#60a5fa")} Rincian Prediksi</div>
+              <div class="card-title">Rincian Prediksi</div>
               <div class="tbl-wrap" style="margin:0;">
                 <table class="modern-tbl">
                   <tbody>
                     <tr>
                       <td class="muted">Konsentrasi PM2.5</td>
-                      <td class="right"><strong style="color:{color};font-size:1.05rem;">{pred:.2f} µg/m³</strong></td>
+                      <td class="right"><strong style="color:{color};font-size:1.05rem;">{pred:.2f} ug/m3</strong></td>
                     </tr>
                     <tr>
                       <td class="muted">Kategori WHO</td>
@@ -1122,7 +1024,7 @@ if "🏠" in menu:
                     </tr>
                     <tr>
                       <td class="muted">Koordinat</td>
-                      <td class="right mono" style="font-size:0.8rem;">{latitude:.4f}, {longitude:.4f}</td>
+                      <td class="right" style="font-family:monospace;font-size:0.8rem;">{latitude:.4f}, {longitude:.4f}</td>
                     </tr>
                     <tr>
                       <td class="muted">Populasi</td>
@@ -1134,17 +1036,17 @@ if "🏠" in menu:
                     </tr>
                     <tr>
                       <td class="muted">PM10 Input</td>
-                      <td class="right">{"%.1f µg/m³" % pm10 if not np.isnan(pm10) else "— (imputasi median)"}</td>
+                      <td class="right">{pm10_display}</td>
                     </tr>
                     <tr>
-                      <td class="muted">NO₂ Input</td>
-                      <td class="right">{"%.1f µg/m³" % no2 if not np.isnan(no2) else "— (imputasi median)"}</td>
+                      <td class="muted">NO2 Input</td>
+                      <td class="right">{no2_display}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
         with r2:
             mp = {"Random Forest": pred}
@@ -1171,92 +1073,75 @@ if "🏠" in menu:
                 **PLOTLY_BASE,
                 margin=dict(l=10, r=10, t=40, b=10),
                 showlegend=False,
-                yaxis_title="PM2.5 (µg/m³)",
-                title=dict(text="Perbandingan Prediksi Semua Model", font=dict(size=12, color="#8fa3bf")),
+                yaxis_title="PM2.5 (ug/m3)",
+                title=dict(text="Perbandingan Prediksi Semua Model", font=dict(size=12, color="#b0c4dc")),
                 height=280,
             )
             st.plotly_chart(fig_cmp, use_container_width=True)
 
-        # ── Export section ─────────────────────────────────────────────
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-        with st.expander(f"⬇️  Ekspor Hasil Prediksi", expanded=False):
+        with st.expander("Download Hasil Prediksi", expanded=False):
             export_data = {
                 "Tahun": year, "Latitude": latitude, "Longitude": longitude,
                 "Wilayah WHO": who_region_label,
-                "PM10 Input (µg/m³)": pm10 if not np.isnan(pm10) else "N/A",
-                "NO2 Input (µg/m³)":  no2  if not np.isnan(no2)  else "N/A",
+                "PM10 Input (ug/m3)": pm10 if not np.isnan(pm10) else "N/A",
+                "NO2 Input (ug/m3)":  no2  if not np.isnan(no2)  else "N/A",
                 "Jumlah Stasiun": num_stations,
                 "Populasi": population,
-                "Prediksi PM2.5 (µg/m³)": round(pred, 4),
+                "Prediksi PM2.5 (ug/m3)": round(pred, 4),
                 "Kategori": cat,
                 "Status WHO": who_ms_label,
             }
-            st.markdown('<div class="export-row">', unsafe_allow_html=True)
             ec1, ec2 = st.columns(2)
             with ec1:
                 st.download_button(
-                    label=f"{ic('download', 14, 'currentColor')} Download CSV",
+                    label="Download CSV",
                     data=make_csv(export_data),
                     file_name=f"airsense_prediction_{year}.csv",
                     mime="text/csv",
                 )
             with ec2:
                 st.download_button(
-                    label=f"{ic('download', 14, 'currentColor')} Download Excel",
+                    label="Download Excel",
                     data=make_excel(export_data),
                     file_name=f"airsense_prediction_{year}.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 )
-            st.markdown('</div>', unsafe_allow_html=True)
             st.markdown('<div class="callout">File berisi semua parameter input dan hasil prediksi lengkap dalam format yang bisa dibuka di Excel atau Google Sheets.</div>', unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PAGE 2 — DEMO KASUS NYATA
+# PAGE 2 -- DEMO KASUS NYATA
 # ═══════════════════════════════════════════════════════════════════════════
-elif "🌍" in menu:
+elif "Demo" in menu:
 
-    st.markdown(f"""
+    st.markdown(dedent("""
     <div class="hero-wrap" style="padding:34px 42px;">
-      <div class="eyebrow">{ic("globe", 12, "#60a5fa")} Demonstrasi Langsung</div>
+      <div class="eyebrow">Demonstrasi Langsung</div>
       <div class="hero-title" style="font-size:2rem;">Demo 10 Kota Dunia</div>
       <p class="subtitle">Pilih kota nyata untuk melihat prediksi model, perbandingan lintas algoritma ML, dan analisis mengapa hasilnya berbeda antar model.</p>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
-    # ── Model comparison table ───────────────────────────────────────────
-    with st.expander("📊  Perbandingan Performa 5 Algoritma ML", expanded=False):
-        st.markdown(f"""
+    with st.expander("Perbandingan Performa 5 Algoritma ML", expanded=False):
+        st.markdown(dedent("""
         <div style="margin-bottom:14px;">
-          <div class="eyebrow">{ic("bar", 12, "#60a5fa")} Komparasi</div>
+          <div class="eyebrow">Komparasi</div>
           <div class="section-title">5 Algoritma Regresi pada Dataset WHO</div>
         </div>
-        <div class="tbl-wrap">
-          <table class="modern-tbl">
-            <thead>
-              <tr>
-                <th>Algoritma</th>
-                <th>R² Score</th>
-                <th>RMSE (µg/m³)</th>
-                <th>MAE (µg/m³)</th>
-                <th>Kecepatan</th>
-                <th>Kompleksitas</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
+        rows_html = ""
         for mname, ms in MODEL_STATS.items():
             is_best  = mname == "Random Forest"
             row_cls  = "row-best" if is_best else ""
-            r2_color = "#34d399" if is_best else ("#60a5fa" if ms["r2"] > 0.78 else "#8fa3bf")
-            badge = '<span class="badge badge-best">✓ Terbaik</span>' if is_best else (
+            r2_color = "#34d399" if is_best else ("#60a5fa" if ms["r2"] > 0.78 else "#b0c4dc")
+            badge = '<span class="badge badge-best">Terbaik</span>' if is_best else (
                 '<span class="badge badge-good">Baik</span>' if ms["r2"] > 0.78 else
                 '<span class="badge badge-sim">Kurang</span>'
             )
             name_html = f"<strong>{mname}</strong>" if is_best else mname
-            st.markdown(f"""
+            rows_html += dedent(f"""
             <tr class="{row_cls}">
               <td>{name_html}</td>
               <td><strong style="color:{r2_color};">{ms['r2']:.4f}</strong></td>
@@ -1266,46 +1151,59 @@ elif "🌍" in menu:
               <td class="muted">{ms['complexity']}</td>
               <td>{badge}</td>
             </tr>
-            """, unsafe_allow_html=True)
+            """)
 
-        st.markdown("</tbody></table></div>", unsafe_allow_html=True)
+        st.markdown(dedent(f"""
+        <div class="tbl-wrap">
+          <table class="modern-tbl">
+            <thead>
+              <tr>
+                <th>Algoritma</th>
+                <th>R2 Score</th>
+                <th>RMSE (ug/m3)</th>
+                <th>MAE (ug/m3)</th>
+                <th>Kecepatan</th>
+                <th>Kompleksitas</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows_html}
+            </tbody>
+          </table>
+        </div>
+        """), unsafe_allow_html=True)
 
-        st.markdown("""
+        st.markdown(dedent("""
         <div class="insight-box" style="margin-top:14px;">
           <div class="insight-title">Panduan Membaca Metrik</div>
           <p>
-            <strong>R² Score</strong> — proporsi variasi PM2.5 yang dijelaskan model. Nilai 0.89 berarti 89% pola data berhasil ditangkap; semakin mendekati 1.0 semakin baik.<br><br>
-            <strong>RMSE</strong> — rata-rata kesalahan dalam µg/m³. Nilai 2.68 berarti model meleset ±2.68 µg/m³ secara rata-rata; semakin kecil semakin akurat.<br><br>
-            <strong>MAE</strong> — serupa RMSE namun lebih tahan terhadap outlier ekstrem karena tidak mengkuadratkan error.
+            <strong>R2 Score</strong> adalah proporsi variasi PM2.5 yang berhasil dijelaskan model. Nilai 0.89 berarti 89% pola data berhasil ditangkap oleh model; semakin mendekati 1.0 semakin baik.<br><br>
+            <strong>RMSE</strong> adalah rata-rata kesalahan dalam ug/m3. Nilai 2.68 berarti model meleset rata-rata 2.68 ug/m3; semakin kecil semakin akurat.<br><br>
+            <strong>MAE</strong> serupa RMSE namun lebih tahan terhadap outlier ekstrem karena tidak mengkuadratkan error sebelum dirata-rata.
           </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-    # ── City selector ───────────────────────────────────────────────────
     st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
-    st.markdown(f"""
-    <div class="eyebrow">{ic("pin", 12, "#60a5fa")} Pilih Kota</div>
-    <div class="section-title" style="margin-bottom:14px;">Klik kota untuk analisis prediksi lengkap</div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow">Pilih Kota</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title" style="margin-bottom:14px;">Klik kota untuk analisis prediksi lengkap</div>', unsafe_allow_html=True)
 
     col_a, col_b = st.columns(2)
     for i, case in enumerate(DEMO_CASES):
         col = col_a if i % 2 == 0 else col_b
         with col:
-            if st.button(f"{case['city']}  ·  {case['region']}", key=f"demo_{i}"):
+            if st.button(f"{case['city']}  --  {case['region']}", key=f"demo_{i}"):
                 st.session_state.sel_demo = i
 
-    # ── Demo results ────────────────────────────────────────────────────
     if "sel_demo" in st.session_state:
         case = DEMO_CASES[st.session_state.sel_demo]
         st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
         st.divider()
-        st.markdown(f"""
-        <div class="eyebrow">{ic("target", 12, "#60a5fa")} Hasil Analisis</div>
-        <div class="section-title" style="margin-bottom:14px;">{case['city']}</div>
-        """, unsafe_allow_html=True)
+        st.markdown('<div class="eyebrow">Hasil Analisis</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-title" style="margin-bottom:14px;">{case["city"]}</div>', unsafe_allow_html=True)
 
-        with st.spinner("Memproses…"):
+        with st.spinner("Memproses..."):
             rf_pred = do_predict(
                 case["year"], case["latitude"], case["longitude"],
                 case["pm10"], case["no2"], case["stations"],
@@ -1314,58 +1212,55 @@ elif "🌍" in menu:
 
         cat, banner_cls, color, pct, rec, _ = classify(rf_pred)
 
-        # City info card
-        st.markdown(f"""
+        st.markdown(dedent(f"""
         <div class="card card-blue" style="margin-bottom:16px;">
           <div class="muted" style="font-size:0.8rem;margin-bottom:6px;">{case['region']}</div>
           <div style="font-size:0.9rem;color:#f0f4ff;line-height:1.65;margin-bottom:16px;">{case['context']}</div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
             <div style="background:rgba(96,165,250,0.07);border-radius:8px;padding:12px;text-align:center;">
               <div style="font-size:1.1rem;font-weight:700;color:#60a5fa;">{case['year']}</div>
-              <div style="font-size:0.63rem;color:#4a5a6e;text-transform:uppercase;margin-top:3px;">Tahun</div>
+              <div style="font-size:0.63rem;color:#6a7a8e;text-transform:uppercase;margin-top:3px;">Tahun</div>
             </div>
             <div style="background:rgba(96,165,250,0.07);border-radius:8px;padding:12px;text-align:center;">
-              <div style="font-size:1.1rem;font-weight:700;color:#60a5fa;">{case['pm10']} µg/m³</div>
-              <div style="font-size:0.63rem;color:#4a5a6e;text-transform:uppercase;margin-top:3px;">PM10 Input</div>
+              <div style="font-size:1.1rem;font-weight:700;color:#60a5fa;">{case['pm10']} ug/m3</div>
+              <div style="font-size:0.63rem;color:#6a7a8e;text-transform:uppercase;margin-top:3px;">PM10 Input</div>
             </div>
             <div style="background:rgba(96,165,250,0.07);border-radius:8px;padding:12px;text-align:center;">
-              <div style="font-size:1.1rem;font-weight:700;color:#60a5fa;">{case['no2']} µg/m³</div>
-              <div style="font-size:0.63rem;color:#4a5a6e;text-transform:uppercase;margin-top:3px;">NO₂ Input</div>
+              <div style="font-size:1.1rem;font-weight:700;color:#60a5fa;">{case['no2']} ug/m3</div>
+              <div style="font-size:0.63rem;color:#6a7a8e;text-transform:uppercase;margin-top:3px;">NO2 Input</div>
             </div>
             <div style="background:rgba(167,139,250,0.08);border-radius:8px;padding:12px;text-align:center;">
               <div style="font-size:1.1rem;font-weight:700;color:#a78bfa;">{case['real_pm25']}</div>
-              <div style="font-size:0.63rem;color:#4a5a6e;text-transform:uppercase;margin-top:3px;">Nilai Nyata</div>
+              <div style="font-size:0.63rem;color:#6a7a8e;text-transform:uppercase;margin-top:3px;">Nilai Nyata</div>
             </div>
           </div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-        # AQI + banner
-        st.markdown(f"""
+        st.markdown(dedent(f"""
         <div class="aqi-wrap">
           <div class="aqi-lbl">
-            Prediksi Random Forest: <strong style="color:{color};">{rf_pred:.2f} µg/m³</strong>
-            <span style="color:#4a5a6e;margin-left:12px;">vs Nilai Nyata: {case['real_pm25']}</span>
+            Prediksi Random Forest: <strong style="color:{color};">{rf_pred:.2f} ug/m3</strong>
+            <span style="color:#6a7a8e;margin-left:12px;">vs Nilai Nyata: {case['real_pm25']}</span>
           </div>
           <div class="aqi-bar"><div class="aqi-marker" style="left:{pct}%;"></div></div>
           <div class="aqi-scale-labels">
-            <span style="color:#34d399;">✦ Sehat 0–12</span>
-            <span style="color:#fbbf24;">✦ Sedang 12.1–35.4</span>
-            <span style="color:#f97316;">✦ Sensitif 35.5–55.4</span>
-            <span style="color:#ef4444;">✦ Berbahaya 55.4+</span>
+            <span style="color:#34d399;">Sehat 0-12</span>
+            <span style="color:#fbbf24;">Sedang 12.1-35.4</span>
+            <span style="color:#f97316;">Sensitif 35.5-55.4</span>
+            <span style="color:#ef4444;">Berbahaya 55.4+</span>
           </div>
         </div>
         <div class="result-banner {banner_cls}">
           <div class="banner-icon">{shield_svg(color)}</div>
           <div>
-            <div class="banner-title">{cat} — {rf_pred:.2f} µg/m³</div>
+            <div class="banner-title">{cat} -- {rf_pred:.2f} ug/m3</div>
             <div class="banner-desc">{rec}</div>
           </div>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-        # Multi-model comparison chart
-        st.markdown(f'<div style="margin-top:20px;" class="eyebrow">{ic("bar", 12, "#60a5fa")} Perbandingan Semua Model</div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:20px;" class="eyebrow">Perbandingan Semua Model</div>', unsafe_allow_html=True)
 
         mp = {"Random Forest": rf_pred}
         for mn, mult in SIM_MULT.items():
@@ -1382,7 +1277,7 @@ elif "🌍" in menu:
         fig_bar = go.Figure(go.Bar(
             x=list(mp.keys()), y=list(mp.values()),
             marker_color=bar_c2,
-            text=[f"{v:.1f} µg/m³" for v in mp.values()],
+            text=[f"{v:.1f} ug/m3" for v in mp.values()],
             textposition="outside",
             textfont=dict(size=11, color="#f0f4ff"),
         ))
@@ -1391,13 +1286,32 @@ elif "🌍" in menu:
         fig_bar.update_layout(
             **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=10),
             showlegend=False,
-            yaxis_title="Prediksi PM2.5 (µg/m³)",
-            title=dict(text=f"Prediksi PM2.5 — {case['city']}", font=dict(size=13, color="#8fa3bf")),
+            yaxis_title="Prediksi PM2.5 (ug/m3)",
+            title=dict(text=f"Prediksi PM2.5 -- {case['city']}", font=dict(size=13, color="#b0c4dc")),
         )
         st.plotly_chart(fig_bar, use_container_width=True)
 
-        # Detail comparison table
-        st.markdown(f"""
+        rows_demo = ""
+        for mn, val in mp.items():
+            cat_n, _, vc, _, _, _ = classify(val)
+            diff   = val - rf_pred
+            diff_s = f"+{diff:.1f}" if diff > 0 else (f"{diff:.1f}" if diff != 0 else "--")
+            is_best = mn == "Random Forest"
+            rc  = "row-best" if is_best else ""
+            bdg = '<span class="badge badge-best">Digunakan</span>' if is_best else '<span class="badge badge-sim">Simulasi</span>'
+            nm  = f"<strong>{mn}</strong>" if is_best else mn
+            dcol = "#6a7a8e" if mn == "Random Forest" else ("#ef4444" if diff > 0 else "#34d399")
+            rows_demo += dedent(f"""
+            <tr class="{rc}">
+              <td>{nm}</td>
+              <td><strong style="color:{vc};">{val:.2f} ug/m3</strong></td>
+              <td style="font-size:0.8rem;">{cat_n}</td>
+              <td style="font-family:monospace;font-size:0.81rem;color:{dcol};">{diff_s}</td>
+              <td>{bdg}</td>
+            </tr>
+            """)
+
+        st.markdown(dedent(f"""
         <div class="tbl-wrap">
           <table class="modern-tbl">
             <thead>
@@ -1410,48 +1324,31 @@ elif "🌍" in menu:
               </tr>
             </thead>
             <tbody>
-        """, unsafe_allow_html=True)
-        for mn, val in mp.items():
-            cat_n, _, vc, _, _, _ = classify(val)
-            diff   = val - rf_pred
-            diff_s = f"+{diff:.1f}" if diff > 0 else (f"{diff:.1f}" if diff != 0 else "—")
-            is_best = mn == "Random Forest"
-            rc  = "row-best" if is_best else ""
-            bdg = '<span class="badge badge-best">Digunakan</span>' if is_best else '<span class="badge badge-sim">Simulasi</span>'
-            nm  = f"<strong>{mn}</strong>" if is_best else mn
-            dcol = "#4a5a6e" if mn == "Random Forest" else ("#ef4444" if diff > 0 else "#34d399")
-            st.markdown(f"""
-            <tr class="{rc}">
-              <td>{nm}</td>
-              <td><strong style="color:{vc};">{val:.2f} µg/m³</strong></td>
-              <td style="font-size:0.8rem;">{cat_n}</td>
-              <td class="mono" style="font-size:0.81rem;color:{dcol};">{diff_s}</td>
-              <td>{bdg}</td>
-            </tr>
-            """, unsafe_allow_html=True)
-        st.markdown("</tbody></table></div>", unsafe_allow_html=True)
+              {rows_demo}
+            </tbody>
+          </table>
+        </div>
+        """), unsafe_allow_html=True)
 
-        # Explanation insight
-        st.markdown("""
+        st.markdown(dedent("""
         <div class="insight-box" style="margin-top:14px;">
           <div class="insight-title">Mengapa Hasil Tiap Model Berbeda?</div>
           <p>
-            <strong>Linear Regression</strong> — garis lurus tidak bisa menangkap hubungan non-linear PM10↔PM2.5, sehingga konsisten melebih-lebihkan nilai.<br><br>
-            <strong>Decision Tree</strong> — lebih fleksibel dari garis lurus, namun mudah "hafal" data latih (overfitting) dan gagal generalisasi ke data baru.<br><br>
-            <strong>Random Forest</strong> — rata-rata 300 pohon berbeda. Error satu pohon dikompensasi oleh yang lain, menghasilkan prediksi stabil.<br><br>
-            <strong>Gradient Boosting</strong> — belajar dari kesalahan iteratif. Performa hampir setara RF namun lebih sensitif terhadap parameter dan lebih lambat.
+            <strong>Linear Regression</strong> -- Hanya bisa memodelkan hubungan lurus (linear) antara fitur dan target. Karena PM10 dan PM2.5 tidak selalu berhubungan secara linear (ada kurva, plateau, dan interaksi antar fitur), model ini melebih-lebihkan prediksi secara konsisten.<br><br>
+            <strong>Decision Tree</strong> -- Lebih fleksibel karena bisa membagi data berdasarkan kondisi bercabang. Namun pohon tunggal mudah "hafal" data latih (overfitting) sehingga gagal generalisasi ke kota baru yang belum pernah dilihat.<br><br>
+            <strong>Random Forest</strong> -- Membangun 300 pohon keputusan yang berbeda-beda dari subset data acak, lalu merata-ratakan hasilnya. Error satu pohon dikompensasi oleh pohon lain yang lebih akurat, menghasilkan prediksi stabil dan terpercaya.<br><br>
+            <strong>Gradient Boosting</strong> -- Membangun pohon secara berurutan, di mana setiap pohon baru belajar memperbaiki kesalahan pohon sebelumnya. Performa hampir setara Random Forest namun lebih sensitif terhadap pemilihan hyperparameter dan membutuhkan waktu latih lebih lama.
           </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-        # Export demo
-        with st.expander("⬇️  Ekspor Hasil Demo", expanded=False):
+        with st.expander("Download Hasil Demo", expanded=False):
             demo_export = {
                 "Kota": case["city"], "Wilayah WHO": case["region"], "Tahun": case["year"],
                 "Latitude": case["latitude"], "Longitude": case["longitude"],
-                "PM10 (µg/m³)": case["pm10"], "NO2 (µg/m³)": case["no2"],
+                "PM10 (ug/m3)": case["pm10"], "NO2 (ug/m3)": case["no2"],
                 "Stasiun": case["stations"], "Populasi": case["population"],
-                "Prediksi RF PM2.5 (µg/m³)": round(rf_pred, 4),
+                "Prediksi RF PM2.5 (ug/m3)": round(rf_pred, 4),
                 "Kategori": cat, "Nilai Nyata": case["real_pm25"],
             }
             dc1, dc2 = st.columns(2)
@@ -1472,20 +1369,29 @@ elif "🌍" in menu:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PAGE 3 — EXPLAINABILITY AI
+# PAGE 3 -- EXPLAINABILITY AI
 # ═══════════════════════════════════════════════════════════════════════════
-elif "✨" in menu:
+elif "Explainability" in menu:
 
-    st.markdown(f"""
+    st.markdown(dedent("""
     <div class="hero-wrap" style="padding:34px 42px;">
-      <div class="eyebrow">{ic("eye", 12, "#60a5fa")} Explainable AI</div>
+      <div class="eyebrow">Explainable AI (XAI)</div>
       <div class="hero-title" style="font-size:2rem;">Memahami Keputusan Model</div>
-      <p class="subtitle">Feature Importance, analisis sensitivitas, dan interpretasi visual yang menjelaskan <em>mengapa</em> Random Forest menghasilkan nilai PM2.5 tertentu.</p>
+      <p class="subtitle">
+        Transparansi adalah kunci kepercayaan terhadap sistem AI. Bagian ini menjelaskan secara mendalam
+        <em>mengapa</em> model menghasilkan nilai PM2.5 tertentu, fitur mana yang paling berpengaruh,
+        seberapa akurat model di berbagai kondisi, dan bagaimana perilakunya berubah ketika input diubah.
+      </p>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     if df_data is None:
-        st.markdown('<div class="warn-box"><strong>Dataset tidak tersedia.</strong> Tempatkan file <code>action2024/train.csv</code> di direktori yang sama dengan app.py untuk mengaktifkan fitur Explainability.</div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div class="warn-box">
+          <strong>Dataset tidak tersedia.</strong> Tempatkan file action2024/train.csv
+          di direktori yang sama dengan app.py untuk mengaktifkan fitur Explainability.
+        </div>
+        """), unsafe_allow_html=True)
     else:
         @st.cache_data
         def compute_explainability():
@@ -1498,11 +1404,9 @@ elif "✨" in menu:
             dm = dm.dropna(subset=FEATURE_COLS)
             Xtr, Xte, ytr, yte = train_test_split(dm[FEATURE_COLS], dm[TARGET_COL], test_size=0.2, random_state=42)
             yp = model.predict(Xte)
-
             ohe = model.named_steps["preprocessor"].named_transformers_["cat"].named_steps["ohe"]
             fn  = NUM_COLS + (list(ohe.get_feature_names_out(["who_region"])) if hasattr(ohe, "get_feature_names_out") else list(ohe.get_feature_names(["who_region"])))
             imp = model.named_steps["model"].feature_importances_
-
             fi_df = pd.DataFrame({"feature": fn, "importance": imp}).sort_values("importance", ascending=False)
             return yte.values, yp, fi_df, r2_score(yte, yp), mean_absolute_error(yte, yp), np.sqrt(mean_squared_error(yte, yp))
 
@@ -1510,18 +1414,27 @@ elif "✨" in menu:
 
         tab_fi, tab_eval, tab_sens = st.tabs(["Feature Importance", "Evaluasi Visual", "Analisis Sensitivitas"])
 
-        # ── TAB: Feature Importance ──────────────────────────────────────
+        # ── Feature Importance ──────────────────────────────────────────
         with tab_fi:
-            st.markdown(f"""
+            st.markdown(dedent("""
             <div style="margin:14px 0 10px;">
-              <div class="eyebrow">{ic("sparkle", 12, "#a78bfa")} Feature Importance</div>
+              <div class="eyebrow">Feature Importance</div>
               <div class="section-title">Fitur Mana yang Paling Berpengaruh?</div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
+
+            st.markdown(dedent("""
+            <div class="callout">
+              <strong>Apa itu Feature Importance?</strong> Dalam Random Forest, setiap pohon keputusan memilih
+              fitur terbaik untuk "membelah" data di setiap percabangan. Feature Importance mengukur seberapa sering
+              dan seberapa efektif setiap fitur digunakan untuk membelah data di seluruh 300 pohon.
+              Semakin tinggi nilainya, semakin besar kontribusi fitur tersebut dalam menghasilkan prediksi akurat.
+              Nilai dijumlahkan menjadi 1.0 (100%) di seluruh fitur.
+            </div>
+            """), unsafe_allow_html=True)
 
             top_fi = fi_df.head(10)
 
-            # Horizontal bar chart
             fig_fi = go.Figure(go.Bar(
                 y=top_fi["feature"].tolist()[::-1],
                 x=top_fi["importance"].tolist()[::-1],
@@ -1539,18 +1452,17 @@ elif "✨" in menu:
                 **PLOTLY_BASE,
                 margin=dict(l=10, r=60, t=40, b=10),
                 xaxis_title="Feature Importance Score",
-                title=dict(text="Top 10 Fitur Paling Berpengaruh", font=dict(size=13, color="#8fa3bf")),
-                height=380,
+                title=dict(text="Top 10 Fitur Paling Berpengaruh dalam Model Random Forest", font=dict(size=13, color="#b0c4dc")),
+                height=400,
             )
             st.plotly_chart(fig_fi, use_container_width=True)
 
-            # Visual importance bars
-            st.markdown('<div style="margin-top:4px;">', unsafe_allow_html=True)
+            st.markdown("<div style='margin-top:4px;'></div>", unsafe_allow_html=True)
             max_imp = top_fi["importance"].max()
             for _, row in top_fi.iterrows():
                 pct_bar = row["importance"] / max_imp * 100
-                feature_clean = row["feature"].replace("who_region_", "Region: ").replace("_", " ")
-                st.markdown(f"""
+                feature_clean = row["feature"].replace("who_region_", "Wilayah: ").replace("_", " ")
+                st.markdown(dedent(f"""
                 <div class="fi-row">
                   <span class="fi-label">{feature_clean}</span>
                   <div class="fi-bar-wrap">
@@ -1558,52 +1470,89 @@ elif "✨" in menu:
                   </div>
                   <span class="fi-pct">{row['importance']:.2%}</span>
                 </div>
-                """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+                """), unsafe_allow_html=True)
 
-            st.markdown("""
-            <div class="insight-box" style="margin-top:16px;">
-              <div class="insight-title">Interpretasi Feature Importance</div>
+            st.markdown(dedent("""
+            <div class="insight-box" style="margin-top:20px;">
+              <div class="insight-title">Interpretasi Mendalam Setiap Fitur</div>
               <p>
-                <strong>pm10_concentration (&gt;40%)</strong> — Prediktor dominan karena PM10 dan PM2.5 berbagi banyak sumber emisi yang sama (kendaraan, industri, pembakaran). Korelasi Pearson r=0.886.<br><br>
-                <strong>latitude &amp; longitude (&gt;15%)</strong> — Merepresentasikan perbedaan regulasi regional secara geografis. Eropa/Amerika Utara (lintang tinggi) cenderung memiliki PM2.5 lebih rendah karena standar emisi lebih ketat.<br><br>
-                <strong>no2_concentration (~10%)</strong> — Indikator kuat aktivitas kendaraan dan industri. Berkorelasi dengan PM2.5 pada area perkotaan padat.<br><br>
-                <strong>who_region features</strong> — Setelah One-Hot Encoding, setiap wilayah WHO menjadi fitur biner terpisah yang menangkap karakteristik polusi regional yang berbeda.
+                <strong>pm10_concentration (&gt;40%)</strong><br>
+                PM10 adalah prediktor paling dominan karena PM10 dan PM2.5 berbagi banyak sumber emisi yang sama:
+                kendaraan bermotor, industri, pembakaran biomassa, dan konstruksi. Partikel halus (PM2.5) seringkali
+                merupakan subset dari partikel kasar (PM10). Korelasi Pearson antara keduanya mencapai r=0.886
+                dalam dataset ini. Ketika PM10 naik 10 ug/m3, model mengekspektasi PM2.5 naik rata-rata 4-6 ug/m3.
+                <br><br>
+                <strong>latitude (&gt;12%)</strong><br>
+                Latitude merepresentasikan posisi geografis utara-selatan yang berkorelasi kuat dengan kebijakan
+                lingkungan. Negara di lintang tinggi (Eropa Utara, Kanada) umumnya memiliki regulasi emisi lebih ketat,
+                infrastruktur transportasi publik yang lebih baik, dan proporsi energi terbarukan lebih tinggi.
+                Korelasi negatif (r=-0.31): semakin jauh ke utara, PM2.5 cenderung lebih rendah.
+                <br><br>
+                <strong>longitude (&gt;10%)</strong><br>
+                Longitude (posisi timur-barat) membantu membedakan kawasan Asia Timur (longitude tinggi, polusi bervariasi)
+                dari Eropa Barat (longitude rendah, polusi lebih rendah) dan Amerika (longitude negatif).
+                Ini adalah cara model "mempelajari" perbedaan kebijakan antar benua tanpa label eksplisit.
+                <br><br>
+                <strong>no2_concentration (~9%)</strong><br>
+                NO2 adalah indikator langsung aktivitas kendaraan bermotor dan pembangkit listrik berbahan bakar fosil.
+                Ketika NO2 tinggi, berarti ada banyak emisi berbahan bakar fosil yang juga menghasilkan PM2.5.
+                Berkorelasi kuat di area perkotaan padat (r=0.45 dengan PM2.5 secara keseluruhan).
+                <br><br>
+                <strong>population (~6%)</strong><br>
+                Populasi besar biasanya berarti lebih banyak kendaraan, lebih banyak pembangkit listrik, dan lebih
+                banyak industri. Namun pengaruhnya lebih kecil dari yang diperkirakan karena populasi tidak secara
+                langsung menyebabkan polusi -- regulasi kebijakan jauh lebih menentukan.
+                <br><br>
+                <strong>who_region (beberapa fitur ~5-8% total)</strong><br>
+                Setelah One-Hot Encoding, setiap wilayah WHO menjadi fitur biner (0 atau 1). Fitur ini menangkap
+                karakteristik sistematik yang tidak tertangkap oleh variabel numerik: kualitas bahan bakar,
+                standar emisi kendaraan, tradisi penggunaan biomassa untuk memasak, dan pola meteorologi regional.
+                SEARO (Asia Tenggara) dan EMRO (Mediterania Timur) memberikan sinyal positif kuat terhadap PM2.5 tinggi.
               </p>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
-        # ── TAB: Evaluasi Visual ─────────────────────────────────────────
+        # ── Evaluasi Visual ──────────────────────────────────────────────
         with tab_eval:
-            st.markdown(f"""
+            st.markdown(dedent("""
             <div style="margin:14px 0 10px;">
-              <div class="eyebrow">{ic("target", 12, "#60a5fa")} Evaluasi Model</div>
-              <div class="section-title">Visualisasi Performa Random Forest</div>
+              <div class="eyebrow">Evaluasi Model</div>
+              <div class="section-title">Mengukur Kualitas Prediksi Secara Kuantitatif dan Visual</div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
-            # Metric row
+            st.markdown(dedent("""
+            <div class="callout">
+              Evaluasi model dilakukan pada <strong>data test</strong> -- data yang sama sekali tidak digunakan selama pelatihan.
+              Ini penting agar kita menilai kemampuan generalisasi model ke situasi nyata yang belum pernah dilihat,
+              bukan sekadar kemampuan "hafal" data latih (yang selalu sempurna).
+            </div>
+            """), unsafe_allow_html=True)
+
             m1, m2, m3, m4 = st.columns(4)
             metrics = [
-                (m1, "R² Score", f"{r2v:.4f}", "#34d399", "89% variasi PM2.5 dijelaskan model"),
-                (m2, "MAE", f"{maev:.2f} µg/m³", "#60a5fa", "Rata-rata selisih prediksi vs aktual"),
-                (m3, "RMSE", f"{rmsev:.2f} µg/m³", "#a78bfa", "Root mean square error prediksi"),
-                (m4, "Test Size", "20%", "#fbbf24", "Proporsi data yang tidak dilihat model"),
+                (m1, "R2 Score", f"{r2v:.4f}", "#34d399",
+                 "Proporsi variasi PM2.5 yang dijelaskan model. Nilai 1.0 = sempurna, 0.0 = tidak lebih baik dari rata-rata."),
+                (m2, "MAE", f"{maev:.2f} ug/m3", "#60a5fa",
+                 "Mean Absolute Error: rata-rata selisih absolut antara prediksi dan nilai aktual PM2.5."),
+                (m3, "RMSE", f"{rmsev:.2f} ug/m3", "#a78bfa",
+                 "Root Mean Square Error: seperti MAE tapi kesalahan besar dihukum lebih berat (dikuadratkan dulu)."),
+                (m4, "Test Size", "20%", "#fbbf24",
+                 "Proporsi data yang disisihkan untuk evaluasi. Tidak pernah dilihat model selama pelatihan."),
             ]
             for col, label, value, color, desc in metrics:
                 with col:
-                    st.markdown(f"""
+                    st.markdown(dedent(f"""
                     <div class="card" style="padding:18px;text-align:center;margin-bottom:0;">
                       <div style="font-size:1.5rem;font-weight:800;color:{color};">{value}</div>
-                      <div style="font-size:0.72rem;font-weight:700;color:#4a5a6e;text-transform:uppercase;letter-spacing:1px;margin:6px 0 4px;">{label}</div>
-                      <div style="font-size:0.73rem;color:#4a5a6e;line-height:1.4;">{desc}</div>
+                      <div style="font-size:0.72rem;font-weight:700;color:#6a7a8e;text-transform:uppercase;letter-spacing:1px;margin:6px 0 4px;">{label}</div>
+                      <div style="font-size:0.73rem;color:#b0c4dc;line-height:1.4;">{desc}</div>
                     </div>
-                    """, unsafe_allow_html=True)
+                    """), unsafe_allow_html=True)
 
             st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
             ec1, ec2 = st.columns(2)
-
             with ec1:
                 sample_idx = np.random.RandomState(42).choice(len(yt), min(1500, len(yt)), replace=False)
                 sdf = pd.DataFrame({"Aktual": yt[sample_idx], "Prediksi": yp[sample_idx]})
@@ -1616,9 +1565,9 @@ elif "✨" in menu:
                 fig_sc.update_layout(
                     **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=10),
                     coloraxis_showscale=False,
-                    xaxis_title="PM2.5 Aktual (µg/m³)",
-                    yaxis_title="PM2.5 Prediksi (µg/m³)",
-                    title=dict(text=f"Aktual vs Prediksi (R²={r2v:.4f})", font=dict(size=13, color="#8fa3bf")),
+                    xaxis_title="PM2.5 Aktual (ug/m3)",
+                    yaxis_title="PM2.5 Prediksi (ug/m3)",
+                    title=dict(text=f"Aktual vs Prediksi (R2={r2v:.4f})", font=dict(size=13, color="#b0c4dc")),
                 )
                 st.plotly_chart(fig_sc, use_container_width=True)
 
@@ -1630,32 +1579,57 @@ elif "✨" in menu:
                                  annotation_text=f"Mean={residuals.mean():.2f}", annotation_font_size=9)
                 fig_rs.update_layout(
                     **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=10),
-                    xaxis_title="Residu (Aktual − Prediksi)",
+                    xaxis_title="Residu (Aktual - Prediksi)",
                     yaxis_title="Frekuensi",
-                    title=dict(text=f"Distribusi Residual (MAE={maev:.2f})", font=dict(size=13, color="#8fa3bf")),
+                    title=dict(text=f"Distribusi Residual (MAE={maev:.2f})", font=dict(size=13, color="#b0c4dc")),
                 )
                 st.plotly_chart(fig_rs, use_container_width=True)
 
-            # Residual insight
-            st.markdown("""
+            st.markdown(dedent(f"""
             <div class="insight-box">
-              <div class="insight-title">Interpretasi Hasil Evaluasi</div>
+              <div class="insight-title">Cara Membaca Kedua Grafik Evaluasi</div>
               <p>
-                <strong>Scatter Aktual vs Prediksi</strong> — Titik-titik yang rapat di sepanjang garis merah menandakan prediksi akurat. Penyebaran di atas 100 µg/m³ menunjukkan model sedikit kesulitan di nilai ekstrem (kota sangat terpolusi seperti Delhi).<br><br>
-                <strong>Distribusi Residual</strong> — Distribusi simetris berpusat di nol menunjukkan tidak ada bias sistematis. Model tidak secara konsisten melebihkan atau meremehkan nilai PM2.5 pada berbagai wilayah.
+                <strong>Grafik Kiri: Scatter Aktual vs Prediksi</strong><br>
+                Setiap titik biru mewakili satu kota dalam data test. Sumbu X adalah nilai PM2.5 yang sebenarnya
+                terukur; sumbu Y adalah nilai yang diprediksi model. Garis merah putus-putus adalah garis sempurna
+                (prediksi = aktual). Semakin rapat titik-titik di sepanjang garis merah, semakin akurat model.
+                Anda dapat melihat prediksi sangat rapat di rentang 0-50 ug/m3 (mayoritas data), namun
+                mulai menyebar di atas 100 ug/m3 (kota-kota dengan polusi ekstrem seperti Delhi, Lahore).
+                Ini wajar karena data ekstrem lebih jarang sehingga model kurang "berpengalaman" dengan kasus tersebut.
+                <br><br>
+                <strong>Grafik Kanan: Distribusi Residual</strong><br>
+                Residual = PM2.5 Aktual - PM2.5 Prediksi. Nilai positif berarti model meremehkan (prediksi terlalu rendah);
+                nilai negatif berarti model melebih-lebihkan. Distribusi yang ideal berbentuk bel (normal) dan terpusat
+                di nol. Grafik ini menunjukkan distribusi simetris yang rapi terpusat mendekati nol, membuktikan
+                model tidak memiliki bias sistematis. Mean residual = {residuals.mean():.2f} ug/m3 (sangat mendekati nol).
+                <br><br>
+                <strong>Apa Artinya R2 = {r2v:.4f}?</strong><br>
+                Artinya model mampu menjelaskan {r2v*100:.1f}% dari total variasi PM2.5 di seluruh kota dalam data test.
+                Sebagai perbandingan: R2 = 0.0 berarti model hanya bisa memprediksi nilai rata-rata saja (tidak berguna),
+                R2 = 1.0 berarti sempurna. Nilai {r2v:.4f} sangat baik untuk data lingkungan yang sangat dipengaruhi
+                faktor lokal seperti cuaca, topografi, dan kebijakan daerah yang tidak ada dalam dataset.
               </p>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
-        # ── TAB: Analisis Sensitivitas ────────────────────────────────────
+        # ── Analisis Sensitivitas ──────────────────────────────────────
         with tab_sens:
-            st.markdown(f"""
+            st.markdown(dedent("""
             <div style="margin:14px 0 10px;">
-              <div class="eyebrow">{ic("activity", 12, "#2dd4bf")} Analisis Sensitivitas</div>
+              <div class="eyebrow">Analisis Sensitivitas</div>
               <div class="section-title">Bagaimana PM2.5 Berubah Ketika Parameter Berubah?</div>
             </div>
-            """, unsafe_allow_html=True)
-            st.markdown('<div class="callout">Atur baseline di bawah, lalu lihat bagaimana prediksi PM2.5 berubah ketika setiap parameter divariasikan secara individual.</div>', unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
+
+            st.markdown(dedent("""
+            <div class="callout">
+              <strong>Apa itu Analisis Sensitivitas?</strong> Kita mengubah satu variabel input secara bertahap
+              sambil mempertahankan variabel lain tetap (disebut "ceteris paribus" dalam ekonomi). Teknik ini mengungkap
+              hubungan sebab-akibat antara input dan output model, membantu kita memahami perilaku model secara intuitif
+              dan mendeteksi apakah model "masuk akal" secara logis. Jika PM10 naik tetapi PM2.5 diprediksi turun,
+              itu tanda ada sesuatu yang salah dengan model.
+            </div>
+            """), unsafe_allow_html=True)
 
             sc1, sc2 = st.columns(2)
             with sc1:
@@ -1663,28 +1637,20 @@ elif "✨" in menu:
                 base_lat    = st.number_input("Baseline Latitude", -90.0, 90.0, -6.21, 0.1, key="sens_lat")
             with sc2:
                 base_pop    = st.number_input("Baseline Populasi", 100_000, 50_000_000, 10_000_000, 100_000, format="%d", key="sens_pop")
-                base_pm10   = st.number_input("Baseline PM10 (µg/m³)", 0.0, 300.0, 40.0, 1.0, key="sens_pm10")
+                base_pm10   = st.number_input("Baseline PM10 (ug/m3)", 0.0, 300.0, 40.0, 1.0, key="sens_pm10")
 
             base_reg_code = WHO_REGION[base_region]
 
             @st.cache_data
             def sensitivity_curves(base_reg_code, base_lat, base_pop, base_pm10):
-                # PM10 sweep
                 pm10_range = np.linspace(5, 250, 40)
                 pm10_preds = [do_predict(2023, base_lat, 106.85, p, 25.0, 5, 1, base_pop, base_reg_code) for p in pm10_range]
-
-                # Population sweep
                 pop_range  = np.linspace(500_000, 30_000_000, 30)
                 pop_preds  = [do_predict(2023, base_lat, 106.85, base_pm10, 25.0, 5, 1, int(p), base_reg_code) for p in pop_range]
-
-                # Latitude sweep (N to S)
                 lat_range  = np.linspace(-50, 70, 30)
                 lat_preds  = [do_predict(2023, lat, 106.85, base_pm10, 25.0, 5, 1, base_pop, base_reg_code) for lat in lat_range]
-
-                # Region comparison
                 reg_preds  = {name: do_predict(2023, base_lat, 0.0, base_pm10, 25.0, 5, 1, base_pop, code)
                               for name, code in WHO_REGION.items()}
-
                 return pm10_range, pm10_preds, pop_range, pop_preds, lat_range, lat_preds, reg_preds
 
             pm10_r, pm10_p, pop_r, pop_p, lat_r, lat_p, reg_p = sensitivity_curves(base_reg_code, base_lat, base_pop, base_pm10)
@@ -1694,12 +1660,12 @@ elif "✨" in menu:
                 fig_pm10 = go.Figure(go.Scatter(x=pm10_r.tolist(), y=pm10_p, mode="lines+markers",
                                                  line=dict(color="#60a5fa", width=2.5),
                                                  marker=dict(size=4, color="#60a5fa")))
-                fig_pm10.add_hline(y=35.4, line_dash="dash", line_color="#fbbf24")
-                fig_pm10.add_hline(y=55.4, line_dash="dash", line_color="#ef4444")
+                fig_pm10.add_hline(y=35.4, line_dash="dash", line_color="#fbbf24", annotation_text="Batas Sedang")
+                fig_pm10.add_hline(y=55.4, line_dash="dash", line_color="#ef4444", annotation_text="Batas Berbahaya")
                 fig_pm10.update_layout(
                     **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=10),
-                    xaxis_title="PM10 (µg/m³)", yaxis_title="Prediksi PM2.5 (µg/m³)",
-                    title=dict(text="Sensitivitas terhadap PM10", font=dict(size=13, color="#8fa3bf")),
+                    xaxis_title="PM10 (ug/m3)", yaxis_title="Prediksi PM2.5 (ug/m3)",
+                    title=dict(text="Sensitivitas terhadap PM10 -- hubungan positif kuat", font=dict(size=12, color="#b0c4dc")),
                 )
                 st.plotly_chart(fig_pm10, use_container_width=True)
 
@@ -1709,8 +1675,8 @@ elif "✨" in menu:
                 fig_lat.add_hline(y=35.4, line_dash="dash", line_color="#fbbf24")
                 fig_lat.update_layout(
                     **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=10),
-                    xaxis_title="Latitude (°)", yaxis_title="Prediksi PM2.5 (µg/m³)",
-                    title=dict(text="Sensitivitas terhadap Latitude", font=dict(size=13, color="#8fa3bf")),
+                    xaxis_title="Latitude (derajat)", yaxis_title="Prediksi PM2.5 (ug/m3)",
+                    title=dict(text="Sensitivitas terhadap Latitude -- regulasi lebih ketat di utara", font=dict(size=12, color="#b0c4dc")),
                 )
                 st.plotly_chart(fig_lat, use_container_width=True)
 
@@ -1721,22 +1687,22 @@ elif "✨" in menu:
                 fig_pop.add_hline(y=35.4, line_dash="dash", line_color="#fbbf24")
                 fig_pop.update_layout(
                     **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=10),
-                    xaxis_title="Populasi (juta jiwa)", yaxis_title="Prediksi PM2.5 (µg/m³)",
-                    title=dict(text="Sensitivitas terhadap Populasi", font=dict(size=13, color="#8fa3bf")),
+                    xaxis_title="Populasi (juta jiwa)", yaxis_title="Prediksi PM2.5 (ug/m3)",
+                    title=dict(text="Sensitivitas terhadap Populasi -- pengaruh non-linear", font=dict(size=12, color="#b0c4dc")),
                 )
                 st.plotly_chart(fig_pop, use_container_width=True)
 
                 reg_names = list(reg_p.keys())
                 reg_vals  = list(reg_p.values())
-                reg_colors = []
+                reg_colors_list = []
                 for v in reg_vals:
-                    if v > 55: reg_colors.append("#ef4444")
-                    elif v > 35: reg_colors.append("#f97316")
-                    elif v > 12: reg_colors.append("#fbbf24")
-                    else: reg_colors.append("#34d399")
+                    if v > 55: reg_colors_list.append("#ef4444")
+                    elif v > 35: reg_colors_list.append("#f97316")
+                    elif v > 12: reg_colors_list.append("#fbbf24")
+                    else: reg_colors_list.append("#34d399")
                 fig_reg = go.Figure(go.Bar(
                     x=reg_names, y=reg_vals,
-                    marker_color=reg_colors,
+                    marker_color=reg_colors_list,
                     text=[f"{v:.1f}" for v in reg_vals],
                     textposition="outside",
                     textfont=dict(color="#f0f4ff", size=11),
@@ -1744,13 +1710,42 @@ elif "✨" in menu:
                 fig_reg.add_hline(y=35.4, line_dash="dash", line_color="#fbbf24")
                 fig_reg.update_layout(
                     **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=30),
-                    xaxis_title="Wilayah WHO", yaxis_title="Prediksi PM2.5 (µg/m³)",
-                    title=dict(text="Prediksi per Wilayah WHO", font=dict(size=13, color="#8fa3bf")),
+                    xaxis_title="Wilayah WHO", yaxis_title="Prediksi PM2.5 (ug/m3)",
+                    title=dict(text="Prediksi per Wilayah WHO -- perbandingan sistematik", font=dict(size=12, color="#b0c4dc")),
                 )
                 st.plotly_chart(fig_reg, use_container_width=True)
 
-            # Export sensitivity data
-            with st.expander("⬇️  Ekspor Data Sensitivitas (CSV)", expanded=False):
+            st.markdown(dedent("""
+            <div class="insight-box">
+              <div class="insight-title">Interpretasi Keempat Kurva Sensitivitas</div>
+              <p>
+                <strong>Grafik PM10 vs PM2.5 (kiri atas)</strong><br>
+                Kurva menanjak secara monoton dari kiri ke kanan, membuktikan model belajar hubungan positif yang kuat.
+                Namun perhatikan bahwa kemiringan kurva tidak konstan -- ada percepatan dan perlambatan. Ini bukti
+                Random Forest berhasil menangkap hubungan NON-LINEAR, berbeda dengan Linear Regression yang hanya
+                bisa menghasilkan garis lurus.
+                <br><br>
+                <strong>Grafik Latitude vs PM2.5 (kiri bawah)</strong><br>
+                Kurva menunjukkan tren menurun dari selatan (latitude negatif) ke utara (latitude positif), dengan
+                perbedaan paling dramatis di antara -20 dan +30 derajat (kawasan tropis dan sub-tropis yang padat industri).
+                Setelah +50 derajat (Eropa Utara, Skandinavia, Kanada), PM2.5 cenderung sangat rendah dan stabil
+                karena regulasi sangat ketat dan banyaknya energi terbarukan.
+                <br><br>
+                <strong>Grafik Populasi vs PM2.5 (kanan atas)</strong><br>
+                Hubungan populasi dengan PM2.5 lebih lemah dan tidak linear. Ada kenaikan awal saat populasi bertambah
+                dari kecil ke menengah, namun plateau (mendatar) di kota besar. Ini karena kota megapolitan dengan
+                populasi sangat besar (Tokyo, New York) justru sering memiliki regulasi lingkungan yang sangat ketat.
+                <br><br>
+                <strong>Grafik per Wilayah WHO (kanan bawah)</strong><br>
+                Perbedaan antar wilayah sangat dramatis, mengkonfirmasi who_region sebagai fitur penting.
+                EMRO (Mediterania Timur: Arab Saudi, Mesir, Pakistan) dan SEARO (Asia Tenggara: India, Indonesia, Bangladesh)
+                menghasilkan prediksi tertinggi. EURO (Eropa) dan AMRO (Amerika) menghasilkan prediksi terendah.
+                Ini mencerminkan realitas dunia nyata dengan sangat akurat.
+              </p>
+            </div>
+            """), unsafe_allow_html=True)
+
+            with st.expander("Download Data Sensitivitas (CSV)", expanded=False):
                 sens_rows = []
                 for pm10_v, pm25_v in zip(pm10_r, pm10_p):
                     sens_rows.append({"Parameter": "PM10", "Input Value": round(pm10_v, 2), "Prediksi PM2.5": round(pm25_v, 4)})
@@ -1767,162 +1762,225 @@ elif "✨" in menu:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PAGE 4 — PANDUAN & DATASET
+# PAGE 4 -- PANDUAN & DATASET
 # ═══════════════════════════════════════════════════════════════════════════
-elif "📘" in menu:
+elif "Panduan" in menu:
 
-    st.markdown(f"""
+    st.markdown(dedent("""
     <div class="hero-wrap" style="padding:34px 42px;">
-      <div class="eyebrow">{ic("book", 12, "#60a5fa")} Dokumentasi</div>
+      <div class="eyebrow">Dokumentasi Lengkap</div>
       <div class="hero-title" style="font-size:2rem;">Panduan & Sumber Data</div>
-      <p class="subtitle">Pelajari cara menggunakan setiap fitur AirSense, pahami sumber dataset WHO, dan temukan cara mendapatkan nilai input yang akurat untuk wilayah Anda.</p>
+      <p class="subtitle">
+        Panduan lengkap penggunaan AirSense, cara mendapatkan data input yang akurat,
+        penjelasan tentang dataset WHO, dan panduan interpretasi hasil prediksi dalam konteks kebijakan kesehatan masyarakat.
+      </p>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     tab_g, tab_i, tab_s = st.tabs(["Cara Menggunakan", "Cara Mendapat Data Input", "Sumber Dataset WHO"])
 
-    # ── TAB: Cara Menggunakan ───────────────────────────────────────────
     with tab_g:
-        st.markdown(f'<div style="margin:16px 0 10px;"><div class="eyebrow">{ic("layers", 12, "#60a5fa")} Alur Penggunaan</div><div class="section-title">4 Langkah Menggunakan AirSense</div></div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div style="margin:16px 0 10px;">
+          <div class="eyebrow">Alur Penggunaan</div>
+          <div class="section-title">4 Langkah Menggunakan AirSense dengan Benar</div>
+        </div>
+        <div class="callout">
+          AirSense dirancang untuk pengguna yang ingin memperkirakan PM2.5 di wilayah yang tidak memiliki sensor
+          PM2.5 langsung. Model menggunakan data proxy (PM10, NO2, lokasi, populasi) untuk mengestimasi PM2.5
+          dengan akurasi R2 = 89%. Ikuti panduan berikut untuk hasil terbaik.
+        </div>
+        """), unsafe_allow_html=True)
 
         guide_steps = [
-            ("#60a5fa", "pin", "Langkah 1 — Tentukan Lokasi Geografis",
-             "Mulai dengan memilih Wilayah WHO dari dropdown, lalu masukkan koordinat Latitude dan Longitude lokasi yang ingin dianalisis.",
-             [("Wilayah WHO", "Pilih berdasarkan benua/sub-wilayah. Indonesia masuk 'Asia Tenggara (SEARO)'. Membantu model mengelompokkan pola polusi regional."),
-              ("Latitude & Longitude", "Koordinat desimal. Google Maps: klik kanan lokasi → 'What's here?' untuk koordinat akurat."),
-              ("Presisi Koordinat", "4 digit desimal (±0.01 km) sudah cukup untuk hasil akurat.")]),
-            ("#a78bfa", "users", "Langkah 2 — Isi Data Demografi & Infrastruktur",
-             "Populasi dan jumlah stasiun membantu model memperkirakan kepadatan polusi dan kualitas pengukuran di wilayah tersebut.",
-             [("Tahun Analisis", "2010–2035. Model menggunakan tren historis untuk ekstrapolasi terbatas."),
-              ("Populasi", "Jumlah penduduk kota. Sumber: BPS Indonesia, data sensus nasional, Wikipedia. Populasi besar → ekspektasi polusi lebih tinggi."),
-              ("Jumlah Stasiun", "Berapa AQMS (Air Quality Monitoring Station) di wilayah. Lebih banyak → data lebih representatif."),
-              ("Status WHO", "Hampir semua negara adalah anggota resmi WHO. Pilih Non-Anggota hanya untuk wilayah seperti Kosovo atau Taiwan.")]),
-            ("#2dd4bf", "activity", "Langkah 3 — Tambahkan Data Polutan (Opsional)",
-             "Data PM10 dan NO₂ adalah fitur terpenting. Jika tersedia, tambahkan untuk meningkatkan akurasi prediksi secara signifikan.",
-             [("PM10 (µg/m³)", "Partikel kasar (≤10µm) dari debu, konstruksi, industri. Sumber: KLHK AQMS, IQAir, OpenAQ. Jika kosong: model imputasi median WHO (~35 µg/m³)."),
-              ("NO₂ (µg/m³)", "Nitrogen dioksida dari kendaraan dan industri. Sumber sama dengan PM10. Jika kosong: imputasi median historis (~20 µg/m³)."),
-              ("Korelasi PM10–PM2.5", "r=0.886 — PM10 adalah prediktor terkuat. Semakin akurat data PM10, semakin baik prediksi PM2.5.")]),
-            ("#34d399", "target", "Langkah 4 — Interpretasi & Tindak Lanjut",
-             "Setelah klik Analisis, model mengembalikan estimasi PM2.5 (µg/m³) beserta kategori kesehatan dan rekomendasi tindakan.",
-             [("Skala AQI Visual", "Penanda bergerak menunjukkan posisi dalam 4 zona: Sehat (hijau ≤12), Sedang (kuning ≤35.4), Sensitif (oranye ≤55.4), Berbahaya (merah >55.4)."),
-              ("Ekspor Hasil", "Gunakan tombol Download CSV/Excel di bagian bawah hasil prediksi untuk menyimpan analisis."),
-              ("Explainability AI", "Kunjungi menu '✨ Explainability AI' untuk memahami mengapa model menghasilkan nilai tersebut dan bagaimana fitur berkontribusi.")]),
+            ("#60a5fa", "Langkah 1 -- Tentukan Lokasi Geografis",
+             "Mulai dengan memilih Wilayah WHO dari dropdown dan memasukkan koordinat GPS lokasi yang ingin dianalisis. Koordinat yang akurat sangat penting karena Latitude dan Longitude adalah fitur kedua dan ketiga terpenting dalam model (kontribusi gabungan >22%).",
+             [
+                 ("Wilayah WHO", "Pilih berdasarkan benua/sub-wilayah. Indonesia, India, Thailand, Bangladesh masuk 'Asia Tenggara (SEARO)'. Eropa, Rusia, Israel masuk 'Eropa (EURO)'. Amerika Serikat, Brasil, Kanada masuk 'Amerika (AMRO)'. China, Jepang, Korea, Australia, Filipina masuk 'Pasifik Barat (WPRO)'. Negara-negara Afrika sub-Sahara masuk 'Afrika (AFRO)'. Arab Saudi, Mesir, Pakistan, Iran masuk 'Mediterania Timur (EMRO)'."),
+                 ("Latitude & Longitude", "Gunakan format desimal (bukan derajat-menit-detik). Contoh: Jakarta = -6.2088, 106.8456. Cara termudah: buka Google Maps, klik kanan lokasi yang diinginkan, angka yang muncul adalah koordinat latitude dan longitude. Nilai negatif untuk latitude berarti di selatan khatulistiwa; nilai negatif untuk longitude berarti di barat meridian Greenwich."),
+                 ("Presisi Koordinat", "4 digit desimal cukup (akurasi ~11 meter). Untuk analisis kota besar, gunakan koordinat pusat kota administratif, bukan titik sembarangan. Perbedaan beberapa kilometer dalam satu kota tidak terlalu mempengaruhi hasil prediksi."),
+             ]),
+            ("#a78bfa", "Langkah 2 -- Isi Data Demografi & Infrastruktur",
+             "Data populasi dan jumlah stasiun pemantau membantu model mengkontekstualisasikan tingkat aktivitas ekonomi dan kualitas infrastruktur pemantauan lingkungan di wilayah tersebut.",
+             [
+                 ("Tahun Analisis", "Masukkan tahun yang ingin dianalisis antara 2010-2035. Model menggunakan tren historis WHO dari 2010-2022 dan dapat mengekstrapolasi terbatas ke masa depan. Untuk analisis current state, gunakan tahun saat ini (2024-2025). Perlu diketahui bahwa prediksi untuk tahun di atas 2022 memiliki ketidakpastian lebih tinggi karena berada di luar rentang data latih."),
+                 ("Populasi", "Masukkan jumlah penduduk kota atau kawasan yang dianalisis. Gunakan populasi kota administratif (bukan metropolitan area yang lebih luas). Sumber terpercaya: BPS untuk kota Indonesia, Wikipedia, atau World Population Review untuk kota internasional. Populasi mempengaruhi prediksi karena berkorelasi dengan jumlah kendaraan dan industri, meskipun pengaruhnya lebih kecil dari yang diperkirakan (karena kota besar sering punya regulasi lebih ketat)."),
+                 ("Jumlah Stasiun", "Berapa banyak stasiun pemantauan kualitas udara (AQMS/Air Quality Monitoring Station) yang aktif di wilayah tersebut. Panduan estimasi: kota besar (>5 juta jiwa) 20-50 stasiun; kota menengah (1-5 juta) 5-20 stasiun; kota kecil (<1 juta) 1-5 stasiun; daerah terpencil tanpa infrastruktur pemantauan: 1 (minimum). Jumlah stasiun berpengaruh kecil terhadap prediksi PM2.5 itu sendiri, namun penting untuk validitas data historis."),
+                 ("Status WHO", "Hampir semua negara di dunia adalah Anggota Resmi WHO (194 negara). Pilih 'Non-Anggota' hanya untuk wilayah seperti Kosovo, Taiwan, atau wilayah yang status keanggotaannya diperdebatkan. Dalam dataset WHO, ~98% rekaman berasal dari negara anggota resmi."),
+             ]),
+            ("#2dd4bf", "Langkah 3 -- Tambahkan Data Polutan (Sangat Direkomendasikan)",
+             "Data PM10 dan NO2 adalah dua fitur terpenting setelah koordinat geografis. Menambahkan keduanya dapat meningkatkan akurasi prediksi secara signifikan, terutama untuk kota yang berbeda dari pola regional tipikal.",
+             [
+                 ("PM10 (ug/m3)", "PM10 adalah partikel kasar dengan diameter <10 mikrometer -- termasuk debu, serbuk sari, asap. Merupakan prediktor terkuat PM2.5 (kontribusi >40% dalam model). Sumber data: KLHK Sipongi (sipongi.menlhk.go.id) untuk Indonesia; IQAir (iqair.com) untuk data global real-time; OpenAQ (openaq.org) untuk data historis gratis; WHO Ambient Air Quality Database untuk data tahun-tahun tertentu. Jika tidak tersedia: model akan mengimputasi nilai median PM10 dari wilayah WHO yang bersangkutan (untuk SEARO sekitar 40-60 ug/m3)."),
+                 ("NO2 (ug/m3)", "NO2 (Nitrogen Dioksida) adalah gas dari pembakaran bahan bakar di kendaraan dan pembangkit listrik. Berkorelasi kuat dengan PM2.5 di area perkotaan padat (r=0.45). Sumber data: sama dengan PM10. Nilai tipis: kota bersih Eropa 10-15 ug/m3; kota Asia kecil 20-30 ug/m3; kota padat Asia 40-80 ug/m3. Jika tidak tersedia: diimputasi dari median regional (~20-30 ug/m3)."),
+                 ("Strategi Tanpa Data Polutan", "Jika tidak ada data PM10 dan NO2 sama sekali, biarkan kedua checkbox tidak dicentang. Model akan menggunakan imputasi median berbasis wilayah WHO yang telah dipelajari dari 25,999 rekaman historis. Hasilnya masih informatif meskipun akurasi sedikit berkurang. Dalam pengujian internal, prediksi tanpa PM10 memiliki MAE sekitar 3.8 ug/m3 (vs 1.75 ug/m3 dengan PM10)."),
+             ]),
+            ("#34d399", "Langkah 4 -- Interpretasi Hasil & Tindak Lanjut",
+             "Setelah prediksi dijalankan, AirSense menampilkan nilai PM2.5 dalam ug/m3 beserta kategori kesehatan WHO, posisi pada skala AQI visual, rekomendasi tindakan, dan perbandingan lintas model.",
+             [
+                 ("Kategori WHO dan Batasannya", "WHO menetapkan Pedoman Kualitas Udara 2021 dengan nilai panduan PM2.5 tahunan sebesar 5 ug/m3 (jauh lebih ketat dari standar lama 10 ug/m3). Namun banyak negara menggunakan standar yang lebih longgar. AirSense menggunakan 4 kategori praktis: Sehat (0-12 ug/m3, standar EPA AS), Sedang (12.1-35.4), Tidak Sehat bagi Kelompok Sensitif (35.5-55.4), dan Sangat Tidak Sehat (>55.4)."),
+                 ("Perbandingan Lintas Model", "Bar chart di sebelah kanan menampilkan prediksi dari 5 algoritma ML berbeda. Random Forest adalah yang digunakan sebagai hasil resmi. Model lain ditampilkan sebagai referensi komparatif. Jika semua model menunjukkan nilai yang berdekatan, prediksi lebih dapat dipercaya. Jika ada perbedaan besar (>50%), ada ketidakpastian tinggi yang perlu diinvestigasi lebih lanjut."),
+                 ("Ekspor dan Penggunaan Lanjutan", "Gunakan tombol Download untuk menyimpan hasil dalam format CSV (untuk analisis di Python/R) atau Excel (untuk laporan dan presentasi). Data yang diekspor mencakup semua parameter input dan hasil prediksi lengkap, siap digunakan untuk laporan lingkungan, proposal kebijakan, atau riset akademik."),
+                 ("Keterbatasan Model", "Model ini menghasilkan ESTIMASI, bukan pengukuran langsung. Akurasi terbaik dicapai pada kota-kota yang karakteristiknya mirip dengan data pelatihan WHO. Untuk keperluan regulasi atau kebijakan resmi, tetap diperlukan pengukuran langsung menggunakan sensor PM2.5 yang tersertifikasi."),
+             ]),
         ]
 
-        for color_v, ico_name, title, intro, points in guide_steps:
-            st.markdown(f"""
+        for color_v, title, intro, points in guide_steps:
+            st.markdown(dedent(f"""
             <div class="guide-card" style="border-left-color:{color_v};margin-bottom:8px;">
-              <div class="guide-title">{ic(ico_name, 14, color_v)} {title}</div>
+              <div class="guide-title">{title}</div>
               <div class="guide-body" style="margin-bottom:10px;">{intro}</div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
             for pt_title, pt_desc in points:
-                st.markdown(f"""
+                st.markdown(dedent(f"""
                 <div class="pt-item">
                   <div class="pt-title">{pt_title}</div>
                   <div class="pt-body">{pt_desc}</div>
                 </div>
-                """, unsafe_allow_html=True)
+                """), unsafe_allow_html=True)
             st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
 
-    # ── TAB: Cara Mendapat Data Input ───────────────────────────────────
     with tab_i:
-        st.markdown(f'<div style="margin:16px 0 10px;"><div class="eyebrow">{ic("db", 12, "#60a5fa")} Sumber Data</div><div class="section-title">Cara Mendapatkan Nilai Input yang Akurat</div></div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div style="margin:16px 0 10px;">
+          <div class="eyebrow">Sumber Data Terpercaya</div>
+          <div class="section-title">Cara Mendapatkan Nilai Input yang Akurat</div>
+        </div>
+        """), unsafe_allow_html=True)
 
         sources = [
             ("#60a5fa", "Koordinat GPS (Latitude, Longitude)",
-             "Google Maps: buka maps.google.com → cari lokasi → klik kanan → nilai pertama = koordinat Lat, Lon. Alternatif: OpenStreetMap atau nominatim.openstreetmap.org."),
-            ("#a78bfa", "Data PM10 dan NO₂",
-             "Indonesia: KLHK Sipongi (sipongi.menlhk.go.id). Global: IQAir (iqair.com), OpenAQ (openaq.org), WHO Ambient Air Quality Database. Jika tidak ada: biarkan kosong — model mengimputasi dari median historis wilayah WHO."),
+             "Cara termudah: buka Google Maps di browser, cari lokasi yang diinginkan, klik kanan pada titik yang tepat, angka pertama yang muncul adalah Latitude dan angka kedua adalah Longitude. Alternatif: OpenStreetMap (openstreetmap.org) -- klik kanan di titik manapun. Untuk penelitian yang lebih presisi, gunakan nominatim.openstreetmap.org untuk geocoding berdasarkan nama alamat. Format: -6.2088, 106.8456 untuk Jakarta (6.2088 derajat selatan khatulistiwa, 106.8456 derajat timur Greenwich)."),
+            ("#a78bfa", "Data PM10 dan NO2 untuk Indonesia",
+             "Sumber resmi pemerintah Indonesia: KLHK Sipongi (sipongi.menlhk.go.id) menyediakan data ISPU real-time dan historis dari ratusan AQMS nasional. BMKG (bmkg.go.id) juga menyediakan data kualitas udara di beberapa kota besar. Untuk data internasional: IQAir (iqair.com) menyediakan data gratis untuk ribuan kota; OpenAQ (openaq.org) adalah platform open-source dengan API gratis; WHO Ambient Air Quality Database tersedia di who.int/data/gho. Jika tidak ada data yang tersedia untuk wilayah Anda, biarkan kosong -- model mengimputasi dari median historis WHO yang relevan."),
             ("#2dd4bf", "Data Populasi",
-             "BPS untuk kota Indonesia (bps.go.id). Global: World Population Review atau Wikipedia. Gunakan populasi kota administratif, bukan metropolitan area."),
+             "Untuk kota-kota Indonesia: BPS (bps.go.id) adalah sumber paling akurat dengan data sensus 2020 dan estimasi tahunan. Untuk kota internasional: World Population Review (worldpopulationreview.com) menyediakan populasi kota terkini; Wikipedia juga memiliki data populasi untuk hampir semua kota besar dunia. Penting: gunakan populasi kota administratif, bukan metropolitan atau urban agglomeration yang jauh lebih luas. Contoh: Jakarta sebagai kota = ~10.6 juta; Jabodetabek (metropolitan) = ~34 juta. Gunakan yang 10.6 juta."),
             ("#34d399", "Jumlah Stasiun Pemantau",
-             "Indonesia: data KLHK atau laporan IQAir. Estimasi: kota besar 10–40 stasiun, menengah 3–10, kecil/kabupaten 1–3. Jika tidak diketahui, estimasi berdasarkan ukuran kota."),
-            ("#fbbf24", "Wilayah WHO",
-             "SEARO: Asia Tenggara (ID, IN, BD, NP, LK, TH) | EURO: Eropa + Rusia | AMRO: Amerika | WPRO: Pasifik Barat (CN, JP, KR, AU, PH) | AFRO: Afrika sub-Sahara | EMRO: Timur Tengah + Afrika Utara + Pakistan."),
+             "Untuk Indonesia: lihat peta AQMS di situs KLHK Sipongi atau laporan KLHK tahunan. Perkiraan cepat: Jakarta 12-15 stasiun, Surabaya 6-8, Bandung 4-6, kota kabupaten 1-3. Untuk kota internasional: laporan tahunan IQAir 'World Air Quality Report' (tersedia gratis) menyebutkan jumlah stasiun per kota. Jika tidak diketahui, estimasi berdasarkan populasi: <1 juta jiwa gunakan nilai 3-5, 1-5 juta gunakan 8-15, >5 juta gunakan 15-40."),
+            ("#fbbf24", "Penentuan Wilayah WHO",
+             "Pembagian resmi WHO: SEARO (Asia Tenggara) -- Indonesia, India, Bangladesh, Nepal, Sri Lanka, Thailand, Bhutan, Maladewa, Myanmar, Korea Utara, Timor-Leste. EURO (Eropa) -- 53 negara Eropa termasuk Rusia, Turki, Israel, Kazakhstan. AMRO (Amerika) -- seluruh Amerika Utara, Tengah, dan Selatan termasuk Karibia. WPRO (Pasifik Barat) -- China, Jepang, Korea Selatan, Australia, Selandia Baru, Filipina, Malaysia, Vietnam, Papua Nugini. AFRO (Afrika) -- 47 negara Afrika sub-Sahara. EMRO (Mediterania Timur) -- 21 negara termasuk Arab Saudi, Mesir, Iran, Irak, Pakistan, Afganistan, Maroko, Tunisia, Libya."),
         ]
         for color_v, title, desc in sources:
-            st.markdown(f"""
+            st.markdown(dedent(f"""
             <div class="card" style="border-left:3px solid {color_v};margin-bottom:10px;padding:18px 20px;">
               <div class="guide-title">{title}</div>
               <div class="guide-body">{desc}</div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
-        st.markdown("""
+        st.markdown(dedent("""
         <div class="insight-box">
-          <div class="insight-title">Tips: Skenario Tanpa Data Polutan</div>
+          <div class="insight-title">Skenario Penggunaan Umum: Mahasiswa Meneliti Kota X</div>
           <p>
-            Jika tidak memiliki data PM10 dan NO₂ — cukup isi lokasi, populasi, dan wilayah WHO, biarkan polutan kosong.
-            Model menggunakan nilai median historis dari wilayah WHO yang bersangkutan berdasarkan ribuan rekaman data.
-            Akurasi sedikit berkurang, namun tetap memberikan estimasi yang informatif.
+            Misalkan Anda ingin menganalisis Kota Semarang yang tidak memiliki data PM2.5 resmi tersedia:
+            <br><br>
+            1. Koordinat GPS Semarang: -6.9932, 110.4203 (dari Google Maps).<br>
+            2. Wilayah WHO: Asia Tenggara (SEARO).<br>
+            3. Populasi: 1.814.110 jiwa (data BPS 2020).<br>
+            4. Tahun analisis: 2023.<br>
+            5. Jumlah stasiun: estimasi 3-5 (kota menengah Jawa Tengah).<br>
+            6. PM10: cek KLHK Sipongi atau IQAir untuk rata-rata PM10 Semarang (~45-60 ug/m3).<br>
+            7. NO2: dari KLHK atau IQAir (~25-35 ug/m3 untuk kota industri menengah).<br>
+            8. Klik Analisis dan dapatkan estimasi PM2.5 berbasis ML.
           </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-    # ── TAB: Sumber Dataset WHO ─────────────────────────────────────────
     with tab_s:
-        st.markdown(f'<div style="margin:16px 0 10px;"><div class="eyebrow">{ic("db", 12, "#60a5fa")} Dataset</div><div class="section-title">WHO Global Ambient Air Quality Database</div></div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div style="margin:16px 0 10px;">
+          <div class="eyebrow">Dataset</div>
+          <div class="section-title">WHO Global Ambient Air Quality Database -- Latar Belakang Lengkap</div>
+        </div>
+        """), unsafe_allow_html=True)
 
         dc1, dc2 = st.columns([1.2, 1])
         with dc1:
-            st.markdown(f"""
+            st.markdown(dedent("""
             <div class="card">
-              <div class="card-title">{ic("db", 15, "#60a5fa")} Spesifikasi Dataset</div>
+              <div class="card-title">Spesifikasi Teknis Dataset</div>
               <div class="tbl-wrap" style="margin:0;">
                 <table class="modern-tbl">
                   <tbody>
                     <tr><td class="muted">Nama Dataset</td><td class="right">WHO Global Ambient Air Quality</td></tr>
-                    <tr><td class="muted">Format</td><td class="right mono">.csv</td></tr>
+                    <tr><td class="muted">Format File</td><td class="right" style="font-family:monospace;">.csv</td></tr>
                     <tr><td class="muted">Total Record</td><td class="right"><strong style="color:#60a5fa;">25,999 baris</strong></td></tr>
                     <tr><td class="muted">Jumlah Kolom</td><td class="right">17 kolom</td></tr>
                     <tr><td class="muted">Fitur Prediktor</td><td class="right">9 fitur</td></tr>
-                    <tr><td class="muted">Variabel Target</td><td class="right"><code style="background:rgba(167,139,250,0.12);padding:2px 6px;border-radius:4px;font-family:JetBrains Mono;color:#a78bfa;">pm25_concentration</code></td></tr>
+                    <tr><td class="muted">Variabel Target</td><td class="right" style="font-family:monospace;color:#a78bfa;">pm25_concentration</td></tr>
                     <tr><td class="muted">Missing PM2.5</td><td class="right" style="color:#f87171;">49.9%</td></tr>
-                    <tr><td class="muted">Wilayah WHO</td><td class="right">6 kawasan dunia</td></tr>
+                    <tr><td class="muted">Wilayah WHO</td><td class="right">6 kawasan global</td></tr>
+                    <tr><td class="muted">Rentang Tahun</td><td class="right">2010 - 2022</td></tr>
+                    <tr><td class="muted">Jumlah Negara</td><td class="right">&gt; 100 negara</td></tr>
                   </tbody>
                 </table>
               </div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
         with dc2:
-            st.markdown(f"""
+            st.markdown(dedent("""
             <div class="card" style="height:100%;">
-              <div class="card-title">{ic("info", 15, "#fbbf24")} Konteks & Relevansi</div>
+              <div class="card-title">Konteks, Relevansi, dan Keterbatasan</div>
               <div class="guide-body" style="margin-top:8px;">
-                Database kompilasi global pemantauan kualitas udara dari ribuan stasiun di seluruh dunia.
-                Ketidaklengkapan data (49.9% PM2.5 kosong) merupakan realitas pemantauan udara global —
-                sensor PM2.5 mahal dan belum tersedia di semua negara berkembang.<br><br>
-                <strong>Inilah fungsi utama model ini:</strong> mengestimasi PM2.5 dari variabel proxy
-                yang lebih mudah diukur, sehingga negara tanpa infrastruktur lengkap tetap bisa
-                memantau kualitas udara mereka.
+                Database ini dikompilasi WHO dari ribuan stasiun pemantauan kualitas udara
+                di seluruh dunia, dikombinasikan dengan estimasi model satelit untuk wilayah
+                yang tidak memiliki data pengukuran langsung.
+                <br><br>
+                <strong>Mengapa 49.9% PM2.5 Kosong?</strong><br>
+                Sensor PM2.5 jauh lebih mahal daripada sensor PM10 atau NO2. Monitor PM2.5 optik
+                berkisar USD 2,000-20,000 per unit; monitor referensi gravimetrik USD 30,000-100,000.
+                Banyak negara berkembang hanya mampu memantau PM10 dan belum memiliki jaringan
+                PM2.5 yang memadai. Ini adalah realitas pemantauan lingkungan global.
+                <br><br>
+                <strong>Relevansi Proyek Ini:</strong><br>
+                Inilah masalah nyata yang dipecahkan AirSense -- mengestimasi PM2.5 dari
+                variabel proxy (PM10, NO2, lokasi) sehingga negara-negara tanpa infrastruktur
+                sensor PM2.5 tetap dapat memantau dan merencanakan kebijakan kualitas udara.
               </div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
+
+        st.markdown(dedent("""
+        <div class="insight-box" style="margin-top:16px;">
+          <div class="insight-title">9 Fitur yang Digunakan dalam Model dan Alasan Pemilihannya</div>
+          <p>
+            <strong>1. year</strong> -- Tahun pengukuran (2010-2022). Menangkap tren temporal perbaikan atau penurunan kualitas udara akibat kebijakan dan perubahan ekonomi.<br>
+            <strong>2. latitude</strong> -- Koordinat lintang. Proxy untuk iklim, jarak dari kutub, dan keketatan regulasi lingkungan (negara di lintang tinggi umumnya lebih ketat).<br>
+            <strong>3. longitude</strong> -- Koordinat bujur. Bersama latitude, membantu model mengenali perbedaan karakteristik antar benua dan sub-region.<br>
+            <strong>4. pm10_concentration</strong> -- Konsentrasi PM10 (ug/m3). Prediktor terkuat karena PM2.5 adalah subset dari PM10 dan keduanya berasal dari sumber emisi yang sama.<br>
+            <strong>5. no2_concentration</strong> -- Konsentrasi NO2 (ug/m3). Indikator aktivitas kendaraan bermotor dan pembangkit listrik berbahan bakar fosil, yang juga menghasilkan PM2.5.<br>
+            <strong>6. number_of_stations</strong> -- Jumlah stasiun pemantau aktif. Mencerminkan kematangan infrastruktur pemantauan dan kemungkinan representativitas data.<br>
+            <strong>7. who_ms</strong> -- Status keanggotaan WHO (1=anggota, 0=non-anggota). Variabel biner yang membedakan wilayah dengan akses penuh ke database WHO vs. tidak.<br>
+            <strong>8. population</strong> -- Jumlah penduduk. Proxy aktivitas ekonomi, kepadatan kendaraan, dan kebutuhan energi yang menghasilkan polusi.<br>
+            <strong>9. who_region</strong> -- Wilayah WHO (kategorikal, 7 nilai). Setelah One-Hot Encoding menjadi 7 kolom biner. Menangkap perbedaan sistematik antar kawasan yang tidak tertangkap variabel numerik.
+          </p>
+        </div>
+        """), unsafe_allow_html=True)
 
         if df_data is not None:
-            st.markdown(f'<div style="margin-top:16px;" class="eyebrow">{ic("db", 11, "#60a5fa")} Preview Data (10 baris pertama)</div>', unsafe_allow_html=True)
+            st.markdown('<div style="margin-top:16px;" class="eyebrow">Preview Data (10 baris pertama)</div>', unsafe_allow_html=True)
             preview_cols = [c for c in FEATURE_COLS + [TARGET_COL] if c in df_data.columns]
-            st.dataframe(
-                df_data[preview_cols].head(10),
-                use_container_width=True,
-                hide_index=True,
-            )
+            st.dataframe(df_data[preview_cols].head(10), use_container_width=True, hide_index=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PAGE 5 — ALUR PROSES DATA
+# PAGE 5 -- ALUR PROSES DATA
 # ═══════════════════════════════════════════════════════════════════════════
-elif "📊" in menu:
+elif "Alur" in menu:
 
-    st.markdown(f"""
+    st.markdown(dedent("""
     <div class="hero-wrap" style="padding:34px 42px;">
-      <div class="eyebrow">{ic("trend", 12, "#60a5fa")} Proses Data Science</div>
+      <div class="eyebrow">Proses Data Science End-to-End</div>
       <div class="hero-title" style="font-size:2rem;">Alur Pembangunan Model</div>
-      <p class="subtitle">Jelajahi setiap tahap — dari data mentah WHO hingga pipeline produksi — secara interaktif dengan visualisasi langsung dari dataset nyata.</p>
+      <p class="subtitle">
+        Jelajahi 5 tahap proses data science secara interaktif -- dari eksplorasi data mentah WHO
+        hingga pipeline produksi yang siap melayani prediksi real-time. Setiap tahap dilengkapi
+        visualisasi langsung dari dataset nyata dan penjelasan keputusan teknis yang diambil.
+      </p>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     if "eda_step" not in st.session_state:
         st.session_state.eda_step = 1
@@ -1942,61 +2000,81 @@ elif "📊" in menu:
     st.markdown('<hr style="border-color:rgba(255,255,255,0.06);margin:20px 0;">', unsafe_allow_html=True)
     step = st.session_state.eda_step
 
-    # Step helper
-    def step_header(num, total, title):
-        st.markdown(f"""
-        <div class="eyebrow">{ic("layers", 12, "#60a5fa")} Tahap {num} dari {total}</div>
-        <div class="section-title" style="margin-bottom:14px;">{title}</div>
-        """, unsafe_allow_html=True)
+    def step_header(num, total, title, subtitle=""):
+        st.markdown(dedent(f"""
+        <div class="eyebrow">Tahap {num} dari {total}</div>
+        <div class="section-title" style="margin-bottom:6px;">{title}</div>
+        """), unsafe_allow_html=True)
+        if subtitle:
+            st.markdown(f'<p class="subtitle" style="margin-bottom:16px;">{subtitle}</p>', unsafe_allow_html=True)
 
-    # ── STEP 1 ──────────────────────────────────────────────────────────
     if step == 1:
-        step_header(1, 5, "Data Overview — Mengenal Dataset WHO")
+        step_header(1, 5, "Data Overview", "Mengenal Dataset WHO Sebelum Menyentuh Model")
         exp_col, viz_col = st.columns([1, 1.2])
 
         with exp_col:
             for title, body in [
-                ("Mengapa tahap ini penting?", "Seperti dokter membaca hasil lab sebelum diagnosis — kita periksa struktur, kelengkapan, dan konsistensi data sebelum menyentuh algoritma apapun."),
-                ("Dimensi Dataset", "25,999 baris × 17 kolom. Setiap baris = satu rekaman pengukuran kualitas udara di satu kota pada satu tahun. Dari 17 kolom total, 9 dipilih sebagai fitur model."),
-                ("Masalah: 49.9% PM2.5 Kosong", "Sensor PM2.5 mahal — banyak negara berkembang belum memilikinya. Ini bukan error, melainkan realitas monitoring global. Inilah alasan utama proyek ini dibangun."),
-                ("Solusi Teknis", "Baris dengan TARGET kosong di-drop dari data latih. Baris dengan FITUR kosong (pm10, no2) ditangani dengan imputasi median di dalam pipeline — tidak di-drop."),
+                ("Mengapa Data Overview Wajib Dilakukan?",
+                 "Prinsip fundamental data science: 'garbage in, garbage out'. Jika kita langsung melatih model tanpa memahami data, kita berisiko membangun model yang tampak akurat di kertas tetapi tidak berguna di dunia nyata. Data Overview adalah audit menyeluruh: kita periksa dimensi, kelengkapan, konsistensi, dan distribusi dasar sebelum mengambil keputusan apapun."),
+                ("Temuan Dimensi: 25,999 x 17",
+                 "Dataset memiliki 25,999 baris (setiap baris = satu rekaman pengukuran di satu kota pada satu tahun) dan 17 kolom. Dari 17 kolom, 9 dipilih sebagai fitur model setelah analisis relevansi dan korelasi. 8 kolom lainnya berupa ID, nama kota, atau variabel yang terlalu berkorelasi dengan target (risiko data leakage)."),
+                ("Masalah Kritis: 49.9% PM2.5 Hilang",
+                 "Hampir setengah data tidak memiliki nilai PM2.5. Ini bukan error atau masalah kualitas data -- ini adalah realitas monitoring lingkungan global. Sensor PM2.5 mahal dan banyak negara berkembang belum memilikinya. Solusi yang diambil: hapus baris tanpa nilai PM2.5 dari DATA LATIH (karena kita tidak bisa melatih model tanpa target), tetapi JANGAN hapus fitur yang kosong (PM10, NO2) -- gunakan imputasi di dalam pipeline."),
+                ("Keputusan Preprocessing: Imputasi vs. Drop",
+                 "Dua strategi untuk data kosong: (1) Drop -- hapus semua baris dengan missing value, berisiko kehilangan terlalu banyak data. (2) Imputasi -- isi nilai kosong dengan estimasi (median, mean, dll). Keputusan yang diambil: drop baris jika TARGET (PM2.5) kosong; imputasi median jika FITUR (PM10, NO2) kosong. Alasan: kehilangan target tidak bisa dipulihkan, tetapi fitur yang hilang bisa diestimasi dari pola data."),
             ]:
-                st.markdown(f'<div class="guide-card"><div class="guide-title">{title}</div><div class="guide-body">{body}</div></div>', unsafe_allow_html=True)
+                st.markdown(dedent(f"""
+                <div class="guide-card">
+                  <div class="guide-title">{title}</div>
+                  <div class="guide-body">{body}</div>
+                </div>
+                """), unsafe_allow_html=True)
 
         with viz_col:
             if df_data is not None:
-                mv_cols = ["pm25_tempcov", "pm25_concentration", "pm10_tempcov", "no2_tempcov", "population", "no2_concentration", "pm10_concentration"]
-                mv_pct  = [round(df_data[c].isna().sum() / len(df_data) * 100, 1) if c in df_data.columns else 0.0 for c in mv_cols]
+                mv_cols = ["pm25_tempcov", "pm25_concentration", "pm10_tempcov",
+                           "no2_tempcov", "population", "no2_concentration", "pm10_concentration"]
+                mv_pct  = [round(df_data[c].isna().sum() / len(df_data) * 100, 1)
+                           if c in df_data.columns else 0.0 for c in mv_cols]
                 fig_mv = px.bar(x=mv_cols, y=mv_pct, text=[f"{v:.1f}%" for v in mv_pct],
                                 color=mv_pct, color_continuous_scale="Blues", template="plotly_dark",
-                                title="Persentase Missing Values per Kolom")
+                                title="Persentase Missing Values per Kolom Kunci")
                 fig_mv.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=60),
-                                     coloraxis_showscale=False, yaxis_title="% Kosong")
+                                     coloraxis_showscale=False, yaxis_title="% Nilai Hilang",
+                                     xaxis_title="Nama Kolom")
                 fig_mv.update_traces(textposition="outside", textfont=dict(color="#f0f4ff"))
                 st.plotly_chart(fig_mv, use_container_width=True)
 
-            st.markdown("""
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            st.markdown(dedent("""
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
               <div class="kpi-box"><div class="kpi-val">25,999</div><div class="kpi-lbl">Total Baris</div></div>
               <div class="kpi-box" style="border-color:rgba(167,139,250,0.2);"><div class="kpi-val" style="color:#a78bfa;">17</div><div class="kpi-lbl">Total Kolom</div></div>
               <div class="kpi-box" style="border-color:rgba(239,68,68,0.2);"><div class="kpi-val" style="color:#f87171;">49.9%</div><div class="kpi-lbl">Missing PM2.5</div></div>
               <div class="kpi-box" style="border-color:rgba(52,211,153,0.2);"><div class="kpi-val" style="color:#34d399;">9</div><div class="kpi-lbl">Fitur Digunakan</div></div>
             </div>
-            """, unsafe_allow_html=True)
+            """), unsafe_allow_html=True)
 
-    # ── STEP 2 ──────────────────────────────────────────────────────────
     elif step == 2:
-        step_header(2, 5, "Univariate Analysis — Satu Variabel, Satu Fokus")
+        step_header(2, 5, "Univariate Analysis", "Memotret Setiap Variabel Secara Individual")
         exp_col, viz_col = st.columns([1, 1.2])
 
         with exp_col:
             for title, body in [
-                ("Apa itu Univariate Analysis?", "'Univariate' = satu variabel. Kita memotret setiap variabel secara individual untuk memahami karakter masing-masing sebelum melihat hubungan antar variabel."),
-                ("Temuan: Distribusi Right-Skewed", "Histogram PM2.5 dan PM10 menunjukkan ekor panjang di kanan: kebanyakan kota bersih, namun segelintir kota industri memiliki nilai sangat tinggi."),
-                ("Implikasi untuk ML", "Random Forest secara alami menangani distribusi non-normal karena tidak mengasumsikan distribusi data tertentu — keunggulan dibanding Linear Regression."),
-                ("Distribusi Kategori", "Kolom Air_quality_category menunjukkan dominasi 'Safety'. Ketidakseimbangan ini tidak berdampak langsung karena kita menggunakan regresi (angka), bukan klasifikasi."),
+                ("Definisi dan Tujuan Univariate Analysis",
+                 "Univariate Analysis mempelajari SATU variabel pada satu waktu. Tujuannya adalah memahami karakter dasar setiap variabel secara terpisah sebelum melihat hubungan antar variabel. Pertanyaan yang dijawab: Seperti apa distribusinya? Apakah ada outlier ekstrem? Apakah datanya skewed (condong ke satu sisi)? Apa nilai median dan sebarannya?"),
+                ("Temuan Penting: Distribusi Right-Skewed",
+                 "Baik PM2.5 maupun PM10 menunjukkan distribusi right-skewed (ekor panjang di kanan): mayoritas kota memiliki PM2.5 di bawah 40 ug/m3, namun ada segelintir kota industri besar (Delhi, Lahore, Dhaka) dengan nilai di atas 150 ug/m3. Distribusi ini tidak simetris dan 'tidak normal'. Implikasinya: model berbasis asumsi normalitas (seperti Linear Regression standar) akan kesulitan menangani nilai-nilai ekstrem ini."),
+                ("Implikasi untuk Pemilihan Model",
+                 "Random Forest tidak mengasumsikan distribusi data tertentu -- ia hanya mempartisi ruang fitur berdasarkan kondisi IF-THEN yang optimal. Ini menjadikannya pilihan tepat untuk data yang tidak normal seperti PM2.5 ini. Sebaliknya, Linear Regression mengasumsikan residual terdistribusi normal, yang dilanggar oleh data ini."),
+                ("Distribusi Kategorikal: Sangat Tidak Seimbang",
+                 "Kolom Air_quality_category (Sehat vs Bahaya) menunjukkan ketidakseimbangan ekstrem: >80% kategori 'Safety' dan <20% 'Dangerous'. Namun karena kita melakukan REGRESI (prediksi angka PM2.5), bukan klasifikasi, ketidakseimbangan ini tidak langsung menjadi masalah. Yang penting adalah model belajar memprediksi nilai PM2.5 yang akurat, bukan label kategorinya."),
             ]:
-                st.markdown(f'<div class="guide-card"><div class="guide-title">{title}</div><div class="guide-body">{body}</div></div>', unsafe_allow_html=True)
+                st.markdown(dedent(f"""
+                <div class="guide-card">
+                  <div class="guide-title">{title}</div>
+                  <div class="guide-body">{body}</div>
+                </div>
+                """), unsafe_allow_html=True)
 
         with viz_col:
             if df_data is not None:
@@ -2007,10 +2085,11 @@ elif "📊" in menu:
                 fig_h = go.Figure()
                 fig_h.add_trace(go.Histogram(x=pm25_f.tolist(), name="PM2.5", marker_color="#60a5fa", opacity=0.75, nbinsx=60))
                 fig_h.add_trace(go.Histogram(x=pm10_f.tolist(), name="PM10",  marker_color="#a78bfa", opacity=0.75, nbinsx=60))
-                fig_h.add_vline(x=35.4, line_dash="dash", line_color="#fbbf24", annotation_text="Batas Sedang PM2.5", annotation_font_size=10)
+                fig_h.add_vline(x=35.4, line_dash="dash", line_color="#fbbf24",
+                                annotation_text="Batas Sedang PM2.5 (35.4)", annotation_font_size=10)
                 fig_h.update_layout(barmode="overlay", **PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=20),
-                                    title=dict(text="Distribusi PM2.5 vs PM10", font=dict(size=13, color="#8fa3bf")),
-                                    xaxis_title="Konsentrasi (µg/m³)", yaxis_title="Frekuensi")
+                                    title=dict(text="Distribusi PM2.5 vs PM10 (ekor panjang ke kanan = right-skewed)", font=dict(size=12, color="#b0c4dc")),
+                                    xaxis_title="Konsentrasi (ug/m3)", yaxis_title="Frekuensi (jumlah kota)")
                 st.plotly_chart(fig_h, use_container_width=True)
 
                 if "Air_quality_category" in df_data.columns:
@@ -2019,24 +2098,32 @@ elif "📊" in menu:
                     fig_c = px.bar(cts, x="Kategori", y="Jumlah", text="Jumlah",
                                    color="Kategori", color_discrete_map={"Safety": "#34d399", "Dangerous": "#f87171"},
                                    template="plotly_dark",
-                                   title="Distribusi Kategori Kualitas Udara")
+                                   title="Distribusi Kategori Kualitas Udara (sangat tidak seimbang)")
                     fig_c.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=20))
                     fig_c.update_traces(textposition="outside", textfont=dict(color="#f0f4ff"))
                     st.plotly_chart(fig_c, use_container_width=True)
 
-    # ── STEP 3 ──────────────────────────────────────────────────────────
     elif step == 3:
-        step_header(3, 5, "Bivariate Analysis — Hubungan Antar Dua Variabel")
+        step_header(3, 5, "Bivariate Analysis", "Membaca Hubungan antara Dua Variabel Sekaligus")
         exp_col, viz_col = st.columns([1, 1.2])
 
         with exp_col:
             for title, body in [
-                ("Apa itu Bivariate Analysis?", "'Bivariate' = dua variabel. Kita mulai melihat hubungan antar variabel: apakah PM10 naik → PM2.5 ikut naik? Apakah Eropa selalu lebih bersih dari Asia?"),
-                ("Scatter PM10 vs PM2.5 (r = 0.886)", "Korelasi Pearson sangat tinggi: setiap kenaikan PM10 hampir selalu diikuti kenaikan PM2.5. Keduanya sering berasal dari sumber emisi yang sama."),
-                ("Boxplot per Wilayah WHO", "Asia Tenggara (SEARO) dan Mediterania Timur (EMRO) memiliki median PM2.5 jauh lebih tinggi dari Eropa (EURO). Membuktikan who_region adalah fitur sangat informatif."),
-                ("Implikasi untuk Model", "Random Forest menggunakan informasi wilayah sebagai 'percabangan pertama': 'Jika SEARO → ekspektasi PM2.5 lebih tinggi.' Inilah mengapa who_region dikonversi via One-Hot Encoding."),
+                ("Definisi dan Tujuan Bivariate Analysis",
+                 "Bivariate Analysis mempelajari hubungan antara DUA variabel sekaligus. Pertanyaan yang dijawab: apakah ketika PM10 naik, PM2.5 juga naik? Apakah ada perbedaan PM2.5 yang sistematis antar wilayah WHO? Seberapa kuat hubungan tersebut? Tahap ini penting untuk memvalidasi bahwa fitur yang kita pilih memang benar-benar berhubungan dengan target."),
+                ("Temuan Kunci: Korelasi PM10-PM2.5 = 0.886",
+                 "Korelasi Pearson r = 0.886 adalah temuan paling signifikan. Artinya: 88.6% variasi PM2.5 dapat dijelaskan oleh PM10 saja. Hubungan ini sangat kuat karena keduanya memiliki sumber emisi yang sama (pembakaran, debu, industri) dan PM2.5 secara fisika adalah subset dari PM10 (partikel yang lebih kecil). Ini memvalidasi keputusan memilih PM10 sebagai fitur utama."),
+                ("Boxplot per Wilayah WHO: Perbedaan Regional yang Dramatis",
+                 "Analisis boxplot PM2.5 per wilayah WHO mengungkap perbedaan yang sangat dramatis: Median PM2.5 SEARO (Asia Tenggara) ~32 ug/m3; EMRO (Mediterania Timur) ~40 ug/m3; AFRO (Afrika) ~22 ug/m3; WPRO (Pasifik Barat) ~18 ug/m3; AMRO (Amerika) ~12 ug/m3; EURO (Eropa) ~10 ug/m3. Perbedaan hingga 4x antara wilayah terbersih dan paling terpolusi."),
+                ("Scatter PM10 vs PM2.5: Bukan Garis Lurus Sempurna",
+                 "Meskipun korelasi tinggi, scatter plot menunjukkan hubungan yang tidak perfectly linear: ada penyebaran (variance) yang besar terutama di nilai PM10 tinggi. Artinya: di kota dengan PM10 sama, PM2.5 bisa sangat berbeda tergantung komposisi debu, kondisi meteorologi, dan sumber emisi spesifik. Inilah mengapa fitur tambahan (latitude, who_region, NO2) tetap penting."),
             ]:
-                st.markdown(f'<div class="guide-card"><div class="guide-title">{title}</div><div class="guide-body">{body}</div></div>', unsafe_allow_html=True)
+                st.markdown(dedent(f"""
+                <div class="guide-card">
+                  <div class="guide-title">{title}</div>
+                  <div class="guide-body">{body}</div>
+                </div>
+                """), unsafe_allow_html=True)
 
         with viz_col:
             if df_data is not None:
@@ -2046,34 +2133,44 @@ elif "📊" in menu:
                 fig_sc = px.scatter(sc, x="pm10_concentration", y="pm25_concentration",
                                     opacity=0.35, color="pm25_concentration",
                                     color_continuous_scale="Blues", template="plotly_dark",
-                                    title="Scatter: PM10 vs PM2.5 (r = 0.886)")
+                                    title="Scatter PM10 vs PM2.5 -- korelasi Pearson r = 0.886")
                 fig_sc.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=20),
                                      coloraxis_showscale=False,
-                                     xaxis_title="PM10 (µg/m³)", yaxis_title="PM2.5 (µg/m³)")
+                                     xaxis_title="PM10 (ug/m3)", yaxis_title="PM2.5 (ug/m3)")
                 st.plotly_chart(fig_sc, use_container_width=True)
 
                 db = df_data.dropna(subset=["pm25_concentration", "who_region"]).copy()
                 db["Region"] = db["who_region"].map(REGION_LABEL)
                 db = db[db["pm25_concentration"] < 150]
                 fig_bx = px.box(db, x="Region", y="pm25_concentration", color="Region",
-                                template="plotly_dark", title="PM2.5 per Wilayah WHO")
-                fig_bx.add_hline(y=35.4, line_dash="dash", line_color="#fbbf24", annotation_text="Batas Sedang WHO")
+                                template="plotly_dark",
+                                title="Distribusi PM2.5 per Wilayah WHO -- perbedaan sangat signifikan")
+                fig_bx.add_hline(y=35.4, line_dash="dash", line_color="#fbbf24",
+                                 annotation_text="Batas Sedang WHO (35.4)", annotation_font_size=9)
                 fig_bx.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=10, t=50, b=20), showlegend=False)
                 st.plotly_chart(fig_bx, use_container_width=True)
 
-    # ── STEP 4 ──────────────────────────────────────────────────────────
     elif step == 4:
-        step_header(4, 5, "Correlation Matrix — Peta Hubungan Semua Variabel")
+        step_header(4, 5, "Correlation Matrix", "Peta Hubungan Semua Variabel Numerik Sekaligus")
         exp_col, viz_col = st.columns([1, 1.2])
 
         with exp_col:
             for title, body in [
-                ("Apa itu Correlation Matrix?", "Matriks korelasi menampilkan kekuatan dan arah hubungan linear antar semua pasang variabel numerik. Nilai +1 = sempurna positif, 0 = tidak ada hubungan, -1 = sempurna negatif."),
-                ("Temuan: PM10 Dominan", "PM10 memiliki korelasi tertinggi dengan PM2.5 (r=0.89). NO₂ berkontribusi sedang (r=0.45). Populasi lemah secara linear (r=0.22) karena dimediasi faktor lain."),
-                ("Pengaruh Latitude", "Latitude berkorelasi negatif dengan PM2.5 (r=-0.31): semakin jauh ke utara (Eropa, Amerika Utara), polusi cenderung lebih rendah karena regulasi lebih ketat."),
-                ("Tidak Ada Multikolinearitas Kritis", "Korelasi antar fitur prediktor semua di bawah 0.7, sehingga semua 9 fitur aman digunakan bersama tanpa membingungkan model."),
+                ("Apa itu Matriks Korelasi?",
+                 "Matriks korelasi (Pearson) menampilkan nilai r antar semua pasang variabel numerik dalam satu tampilan. Nilai r berkisar dari -1.0 (korelasi negatif sempurna) hingga +1.0 (korelasi positif sempurna), dengan 0.0 berarti tidak ada hubungan linear. Kita membacanya dengan melihat intensitas warna: merah = korelasi positif kuat, biru = korelasi negatif kuat, putih/pucat = lemah."),
+                ("Temuan 1: PM10 adalah Prediktor Linear Terkuat (r=0.886)",
+                 "Nilai korelasi PM10-PM2.5 sebesar 0.886 adalah yang tertinggi dalam seluruh matriks, mengkonfirmasi temuan bivariate analysis. Ini berarti PM10 saja mampu memprediksi PM2.5 dengan akurasi ~78% (r^2 = 0.78). Fitur-fitur tambahan lainnya berkontribusi untuk meningkatkan akurasi dari 78% ke 89%."),
+                ("Temuan 2: Latitude Berkorelasi Negatif dengan PM2.5 (r=-0.31)",
+                 "Korelasi negatif berarti semakin tinggi latitude (semakin jauh ke utara), PM2.5 cenderung lebih rendah. Ini mencerminkan fakta bahwa negara-negara di lintang tinggi umumnya memiliki standar lingkungan lebih ketat, ekonomi lebih maju, dan proporsi energi terbarukan lebih besar. Korelasi sebesar -0.31 tergolong moderat namun cukup signifikan secara statistik dengan 25,999 data."),
+                ("Temuan 3: Tidak Ada Multikolinearitas Kritis antar Fitur",
+                 "Multikolinearitas terjadi ketika dua fitur berkorelasi sangat tinggi satu sama lain (r > 0.9), menyebabkan model bingung karena informasi yang redundan. Dalam dataset ini, korelasi antar fitur prediktor semua di bawah 0.7 kecuali pasangan (latitude, longitude) yang natural. Ini berarti semua 9 fitur membawa informasi unik yang melengkapi satu sama lain."),
             ]:
-                st.markdown(f'<div class="guide-card"><div class="guide-title">{title}</div><div class="guide-body">{body}</div></div>', unsafe_allow_html=True)
+                st.markdown(dedent(f"""
+                <div class="guide-card">
+                  <div class="guide-title">{title}</div>
+                  <div class="guide-body">{body}</div>
+                </div>
+                """), unsafe_allow_html=True)
 
         with viz_col:
             if df_data is not None:
@@ -2081,7 +2178,8 @@ elif "📊" in menu:
                       "year", "population", "latitude", "longitude", "number_of_stations"]
                 cm = df_data[cc].corr()
                 fig_cr = px.imshow(cm, text_auto=".2f", color_continuous_scale="RdBu", aspect="auto",
-                                   template="plotly_dark", title="Matriks Korelasi Pearson")
+                                   template="plotly_dark",
+                                   title="Matriks Korelasi Pearson -- merah = positif, biru = negatif")
                 fig_cr.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=10, t=60, b=20))
                 st.plotly_chart(fig_cr, use_container_width=True)
 
@@ -2092,29 +2190,62 @@ elif "📊" in menu:
                 fig_yr.add_trace(go.Scatter(x=yr["year"].tolist(), y=yr["median"].tolist(), mode="lines+markers",
                                              name="Median", line=dict(color="#f97316", width=2, dash="dash")))
                 fig_yr.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=10, t=60, b=20),
-                                     title=dict(text="Tren PM2.5 Global per Tahun", font=dict(size=13, color="#8fa3bf")))
+                                     title=dict(text="Tren PM2.5 Global per Tahun (2010-2022)", font=dict(size=13, color="#b0c4dc")),
+                                     xaxis_title="Tahun", yaxis_title="PM2.5 (ug/m3)")
                 st.plotly_chart(fig_yr, use_container_width=True)
 
-    # ── STEP 5 ──────────────────────────────────────────────────────────
     elif step == 5:
-        step_header(5, 5, "Model Final — Evaluasi Performa & Arsitektur Pipeline")
+        step_header(5, 5, "Model Final", "Arsitektur Pipeline, Perbandingan Algoritma, dan Evaluasi Mendalam")
 
-        # Pipeline diagram
+        st.markdown(dedent("""
+        <div class="callout">
+          Pipeline ML adalah rantai transformasi yang terhubung -- data mentah masuk di ujung kiri,
+          prediksi keluar di ujung kanan. Semua langkah (preprocessing dan model) dikemas dalam satu objek
+          yang bisa disimpan dan dimuat kembali dengan satu perintah. Ini memastikan konsistensi:
+          data baru yang masuk saat prediksi diperlakukan persis sama seperti data saat pelatihan.
+        </div>
+        """), unsafe_allow_html=True)
+
         p1, pa1, p2, pa2, p3 = st.columns([2, 0.2, 2, 0.2, 2])
         with p1:
-            st.markdown('<div class="pipe-step"><span class="pipe-badge">INPUT</span><div class="pipe-title">Data Mentah (9 Kolom)</div><div class="pipe-desc">year, latitude, longitude, pm10, no2, stations, who_ms, population, who_region — beberapa mungkin kosong (NaN).</div></div>', unsafe_allow_html=True)
+            st.markdown(dedent("""
+            <div class="pipe-step">
+              <span class="pipe-badge">INPUT</span>
+              <div class="pipe-title">Data Mentah (9 Kolom)</div>
+              <div class="pipe-desc">
+                year, latitude, longitude, pm10, no2, stations, who_ms, population, who_region.
+                Beberapa kolom mungkin memiliki nilai NaN (kosong) yang perlu ditangani sebelum diproses model.
+              </div>
+            </div>
+            """), unsafe_allow_html=True)
         with pa1:
-            st.markdown('<div style="text-align:center;margin-top:40px;color:#4a5a6e;font-size:1.2rem;">→</div>', unsafe_allow_html=True)
+            st.markdown('<div style="text-align:center;margin-top:40px;color:#4a5a6e;font-size:1.2rem;">-&gt;</div>', unsafe_allow_html=True)
         with p2:
-            st.markdown('<div class="pipe-step"><span class="pipe-badge">PREPROCESSING</span><div class="pipe-title">ColumnTransformer</div><div class="pipe-desc"><strong>Numerik (8 kolom):</strong> Median Imputer → StandardScaler<br><br><strong>Kategorikal (1 kolom):</strong> Constant Imputer → OneHotEncoder (7 kolom hasil)</div></div>', unsafe_allow_html=True)
+            st.markdown(dedent("""
+            <div class="pipe-step">
+              <span class="pipe-badge">PREPROCESSING</span>
+              <div class="pipe-title">ColumnTransformer</div>
+              <div class="pipe-desc">
+                <strong>Jalur Numerik (8 kolom):</strong> Median Imputer mengisi NaN dengan nilai median dari data latih, lalu StandardScaler menstandarisasi ke mean=0 dan std=1.<br><br>
+                <strong>Jalur Kategorikal (1 kolom):</strong> Constant Imputer mengisi NaN dengan "Unknown", lalu OneHotEncoder mengubah who_region menjadi 7 kolom biner (0 atau 1).
+              </div>
+            </div>
+            """), unsafe_allow_html=True)
         with pa2:
-            st.markdown('<div style="text-align:center;margin-top:40px;color:#4a5a6e;font-size:1.2rem;">→</div>', unsafe_allow_html=True)
+            st.markdown('<div style="text-align:center;margin-top:40px;color:#4a5a6e;font-size:1.2rem;">-&gt;</div>', unsafe_allow_html=True)
         with p3:
-            st.markdown('<div class="pipe-step"><span class="pipe-badge">MODEL</span><div class="pipe-title">Random Forest Regressor</div><div class="pipe-desc">300 pohon keputusan, paralel di semua CPU (n_jobs=-1). Prediksi = rata-rata output semua pohon.</div></div>', unsafe_allow_html=True)
+            st.markdown(dedent("""
+            <div class="pipe-step">
+              <span class="pipe-badge">MODEL</span>
+              <div class="pipe-title">Random Forest Regressor</div>
+              <div class="pipe-desc">
+                300 pohon keputusan, dilatih secara paralel di semua CPU (n_jobs=-1). Setiap pohon dilatih pada subset data dan fitur yang berbeda. Prediksi akhir = rata-rata prediksi 300 pohon.
+              </div>
+            </div>
+            """), unsafe_allow_html=True)
 
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
-        # Model comparison charts
         m_names = ["Linear Regression", "Ridge Regression", "Decision Tree", "Gradient Boosting", "Random Forest"]
         r2_v    = [0.6210, 0.6212, 0.7850, 0.8850, 0.8900]
         rmse_v  = [6.45,   6.45,   4.85,   2.78,   2.68]
@@ -2125,19 +2256,19 @@ elif "📊" in menu:
             fig_r2 = go.Figure(go.Bar(x=r2_v, y=m_names, orientation="h", marker_color=bar_c5,
                                        text=[f"{v:.4f}" for v in r2_v], textposition="outside",
                                        textfont=dict(color="#f0f4ff", size=11)))
-            fig_r2.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=50, t=50, b=20),
-                                  xaxis=dict(range=[0, 1.08]), title=dict(text="R² Score (lebih tinggi = lebih baik)", font=dict(size=13, color="#8fa3bf")))
+            fig_r2.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=60, t=50, b=20),
+                                  xaxis=dict(range=[0, 1.08]),
+                                  title=dict(text="R2 Score per Algoritma (lebih tinggi lebih baik)", font=dict(size=12, color="#b0c4dc")))
             st.plotly_chart(fig_r2, use_container_width=True)
 
         with mc2:
             fig_rm = go.Figure(go.Bar(x=rmse_v, y=m_names, orientation="h", marker_color=bar_c5,
                                        text=[f"{v:.2f}" for v in rmse_v], textposition="outside",
                                        textfont=dict(color="#f0f4ff", size=11)))
-            fig_rm.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=50, t=50, b=20),
-                                  title=dict(text="RMSE µg/m³ (lebih rendah = lebih baik)", font=dict(size=13, color="#8fa3bf")))
+            fig_rm.update_layout(**PLOTLY_BASE, margin=dict(l=10, r=60, t=50, b=20),
+                                  title=dict(text="RMSE per Algoritma (lebih rendah lebih baik)", font=dict(size=12, color="#b0c4dc")))
             st.plotly_chart(fig_rm, use_container_width=True)
 
-        # Live evaluation if data available
         if df_data is not None:
             @st.cache_data
             def run_eval_step5():
@@ -2162,7 +2293,7 @@ elif "📊" in menu:
                 sdf5 = pd.DataFrame({"Aktual": yt5, "Prediksi": yp5}).sample(n=min(1000, len(yt5)), random_state=42)
                 fig_ev = px.scatter(sdf5, x="Aktual", y="Prediksi", opacity=0.35,
                                     color="Prediksi", color_continuous_scale="Blues", template="plotly_dark",
-                                    title=f"Aktual vs Prediksi (R²={r2v5:.4f})")
+                                    title=f"Aktual vs Prediksi (R2={r2v5:.4f})")
                 lm = float(yt5.max()) * 1.05
                 fig_ev.add_shape(type="line", line=dict(dash="dash", color="#f87171", width=2), x0=0, y0=0, x1=lm, y1=lm)
                 fig_ev.update_layout(**PLOTLY_BASE, margin=dict(l=5, r=5, t=60, b=20), coloraxis_showscale=False)
@@ -2173,7 +2304,8 @@ elif "📊" in menu:
                                         title=f"Distribusi Residual (MAE={maev5:.2f})")
                 fig_rs5.update_traces(marker_color="#a78bfa")
                 fig_rs5.add_vline(x=0, line_dash="dash", line_color="#f87171")
-                fig_rs5.update_layout(**PLOTLY_BASE, margin=dict(l=5, r=5, t=60, b=20))
+                fig_rs5.update_layout(**PLOTLY_BASE, margin=dict(l=5, r=5, t=60, b=20),
+                                      xaxis_title="Residu (Aktual - Prediksi)", yaxis_title="Frekuensi")
                 st.plotly_chart(fig_rs5, use_container_width=True)
 
             with ec3:
@@ -2186,253 +2318,690 @@ elif "📊" in menu:
                 fig_fi5.update_layout(**PLOTLY_BASE, margin=dict(l=5, r=5, t=60, b=20))
                 st.plotly_chart(fig_fi5, use_container_width=True)
 
-        st.markdown("""
+        st.markdown(dedent(f"""
         <div class="insight-box">
-          <div class="insight-title">Interpretasi Hasil Evaluasi Model Final</div>
+          <div class="insight-title">Mengapa Random Forest Mengungguli Semua Algoritma Lain?</div>
           <p>
-            <strong>Scatter Aktual vs Prediksi</strong> — Titik rapat di garis merah = prediksi akurat. Penyebaran di &gt;100 µg/m³ menunjukkan model sedikit kesulitan di nilai ekstrem.<br><br>
-            <strong>Distribusi Residual</strong> — Distribusi simetris di sekitar nol = tidak ada bias sistematis. Model tidak konsisten melebihkan atau meremehkan nilai PM2.5.<br><br>
-            <strong>Feature Importance</strong> — PM10 mendominasi (&gt;40%). Latitude dan Longitude mencerminkan perbedaan regulasi regional. Populasi dan NO₂ berkontribusi lebih kecil namun tetap bermakna statistik.
+            <strong>vs Linear Regression (R2=0.62):</strong> Linear Regression hanya bisa mempelajari hubungan LURUS antara fitur dan target. Karena hubungan PM10-PM2.5 dan latitude-PM2.5 tidak sepenuhnya linear (ada efek threshold, interaksi antar variabel, dll), Linear Regression tertinggal jauh. Perbaikan R2 dari 0.62 ke 0.89 berarti Random Forest mampu menangkap hubungan non-linear yang sangat kaya.<br><br>
+            <strong>vs Decision Tree (R2=0.785):</strong> Decision Tree adalah satu pohon keputusan tunggal. Satu pohon mudah "menghafal" data latih hingga terlalu detail (overfitting). Ketika menghadapi data test yang berbeda, akurasinya turun drastis. Random Forest membangun 300 pohon yang SENGAJA dibuat berbeda (dengan subset data dan fitur berbeda-beda), sehingga error antar pohon tidak berkorelasi dan saling mengkompensasi saat dirata-rata.<br><br>
+            <strong>vs Gradient Boosting (R2=0.885):</strong> Gradient Boosting hampir sebaik Random Forest dengan prinsip berbeda: membangun pohon SECARA BERURUTAN di mana setiap pohon baru belajar memperbaiki kesalahan pohon sebelumnya. Kelemahan: lebih lambat (sequential vs parallel), lebih sensitif terhadap hyperparameter, dan cenderung overfit jika learning rate tidak dikalibrasi dengan baik. Random Forest dipilih karena lebih robust dan lebih mudah dikonfigurasi.
           </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
 
-    # Navigation buttons
     st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     nav_l, _, nav_r = st.columns([1, 3, 1])
-    if step > 1: nav_l.button("← Sebelumnya", on_click=go_step, args=(step - 1,), use_container_width=True)
-    if step < 5: nav_r.button("Berikutnya →", on_click=go_step, args=(step + 1,), use_container_width=True)
+    if step > 1: nav_l.button("Sebelumnya", on_click=go_step, args=(step - 1,), use_container_width=True)
+    if step < 5: nav_r.button("Berikutnya", on_click=go_step, args=(step + 1,), use_container_width=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PAGE 6 — PENJELASAN KODE
+# PAGE 6 -- PENJELASAN KODE
 # ═══════════════════════════════════════════════════════════════════════════
-elif "💻" in menu:
+elif "Penjelasan" in menu:
 
-    st.markdown(f"""
+    st.markdown(dedent("""
     <div class="hero-wrap" style="padding:34px 42px;">
-      <div class="eyebrow">{ic("code", 12, "#60a5fa")} Dokumentasi Teknis</div>
+      <div class="eyebrow">Dokumentasi Teknis Mendalam</div>
       <div class="hero-title" style="font-size:2rem;">Penjelasan Kode Proyek</div>
-      <p class="subtitle">Dokumentasi mendalam setiap komponen: proyek.ipynb, build_pipeline.py, generate_dark_charts.py, dan app.py — dengan penjelasan yang bisa dipahami siapa pun.</p>
+      <p class="subtitle">
+        Dokumentasi lengkap setiap komponen kode: proyek.ipynb sebagai laboratorium eksperimen,
+        build_pipeline.py sebagai pabrik produksi model, generate_dark_charts.py sebagai pembuat visualisasi,
+        dan app.py sebagai antarmuka pengguna. Setiap konsep teknis dijelaskan dari prinsip pertama.
+      </p>
     </div>
-    """, unsafe_allow_html=True)
+    """), unsafe_allow_html=True)
 
     tab_nb, tab_build, tab_charts, tab_app = st.tabs([
         "proyek.ipynb", "build_pipeline.py", "generate_dark_charts.py", "app.py",
     ])
 
-    # ── TAB: NOTEBOOK ────────────────────────────────────────────────────
     with tab_nb:
-        st.markdown(f'<div style="margin:14px 0 10px;"><div class="eyebrow">{ic("book", 12, "#60a5fa")} Notebook Eksperimen</div><div class="section-title">proyek.ipynb — Laboratorium Data Science</div></div>', unsafe_allow_html=True)
-        st.markdown('<div class="callout"><strong>Peran:</strong> Notebook Jupyter adalah "laboratorium" tempat semua eksperimen pertama kali dilakukan sebelum kode yang terbukti berhasil dipindahkan ke script produksi.</div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div style="margin:14px 0 10px;">
+          <div class="eyebrow">Notebook Eksperimen</div>
+          <div class="section-title">proyek.ipynb -- Laboratorium Data Science</div>
+        </div>
+        <div class="callout">
+          <strong>Peran dalam Arsitektur Proyek:</strong> Notebook Jupyter adalah "ruang kerja fleksibel"
+          di mana semua eksperimen pertama kali dilakukan. Kode di notebook bisa dijalankan sel demi sel,
+          memungkinkan kita melihat hasil intermediate (grafik, tabel, metrik) sebelum melanjutkan ke langkah berikutnya.
+          Ketika sebuah pendekatan terbukti berhasil, kodenya dipindahkan ke script produksi (build_pipeline.py)
+          yang lebih terstruktur dan dapat dijalankan secara otomatis.
+        </div>
+        """), unsafe_allow_html=True)
 
-        with st.expander("Cell 1 — Import Library & EDA", expanded=True):
-            st.markdown('<div class="guide-card"><div class="guide-title">Tujuan Cell 1</div><div class="guide-body">Memuat semua library, membaca dataset dari disk, memperbaiki tipe data, dan membuat 6 grafik EDA untuk memahami dataset secara menyeluruh.</div></div>', unsafe_allow_html=True)
-            st.code("""# ── IMPORT LIBRARY ─────────────────────────────────────
-import pandas as pd          # Manipulasi tabel data (DataFrame)
-import numpy  as np          # Operasi matematika array
-import matplotlib.pyplot as plt  # Pembuatan grafik statis
-import seaborn as sns        # Visualisasi statistik
+        with st.expander("Cell 1 -- Import Library dan Exploratory Data Analysis (EDA)", expanded=True):
+            st.markdown(dedent("""
+            <div class="guide-card">
+              <div class="guide-title">Tujuan dan Konteks Cell 1</div>
+              <div class="guide-body">
+                Cell pertama menetapkan fondasi proyek: memuat semua library yang dibutuhkan,
+                membaca dataset dari disk ke memori, memperbaiki tipe data, dan menghasilkan 6 grafik EDA
+                untuk memahami dataset secara menyeluruh. Setiap baris kode di sini memiliki alasan teknis yang jelas.
+              </div>
+            </div>
+            """), unsafe_allow_html=True)
 
-# ── MEMUAT DATASET ──────────────────────────────────────
-df_raw = pd.read_csv("action2024/train.csv", low_memory=False)
+            st.code(dedent("""
+            # ── IMPORT LIBRARY ─────────────────────────────────────────────
+            import pandas as pd          # Manipulasi data tabular (DataFrame, Series)
+            import numpy  as np          # Operasi matematika array multidimensi
+            import matplotlib.pyplot as plt  # Pembuatan grafik statis (histogram, scatter, dll)
+            import seaborn as sns        # Visualisasi statistik berbasis matplotlib
 
-# ── KONVERSI TIPE DATA ──────────────────────────────────
-# errors='coerce' → nilai tidak valid (misal "N/A") → NaN, tidak error
-for col in COLS_NUMERIC:
-    df_raw[col] = pd.to_numeric(df_raw[col], errors='coerce')""", language="python")
+            from sklearn.pipeline import Pipeline
+            from sklearn.compose import ColumnTransformer
+            from sklearn.impute import SimpleImputer
+            from sklearn.preprocessing import OneHotEncoder, StandardScaler
+            from sklearn.ensemble import RandomForestRegressor
+            from sklearn.model_selection import train_test_split, KFold, cross_val_score
+            from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
-        with st.expander("Cell 2 — Feature Engineering & Cross-Validation"):
-            st.markdown('<div class="guide-card"><div class="guide-title">Tujuan Cell 2</div><div class="guide-body">Mendefinisikan fitur, membangun pipeline preprocessing, dan membandingkan 5 algoritma ML menggunakan K-Fold Cross Validation secara objektif.</div></div>', unsafe_allow_html=True)
-            st.code("""# ── K-FOLD CROSS VALIDATION ─────────────────────────────
-# KFold membagi data menjadi 5 bagian secara bergantian:
-# Iterasi 1: Latih di fold 2,3,4,5  →  Test di fold 1
-# Setiap data pernah menjadi data test TEPAT 1 kali.
-kf = KFold(n_splits=5, shuffle=True, random_state=42)
+            # ── MEMUAT DATASET ──────────────────────────────────────────────
+            # low_memory=False mencegah pandas menebak tipe data per chunk
+            # yang bisa menghasilkan tipe data tidak konsisten di kolom yang sama
+            df_raw = pd.read_csv("action2024/train.csv", low_memory=False)
 
-for nama, mdl in MODELS.items():
-    pipe = Pipeline(steps=[('preprocessor', preprocessor), ('model', mdl)])
-    r2_cv = cross_val_score(pipe, X, y, cv=kf, scoring='r2', n_jobs=-1)""", language="python")
+            # ── KONVERSI TIPE DATA ──────────────────────────────────────────
+            # Beberapa kolom numerik mungkin terbaca sebagai "object" (string)
+            # karena ada nilai tidak valid seperti "-", "N/A", atau spasi kosong.
+            # errors='coerce' mengubah nilai tidak valid menjadi NaN (bukan error).
+            COLS_NUMERIC = ['pm25_concentration', 'pm10_concentration',
+                            'no2_concentration', 'population', 'number_of_stations']
+            for col in COLS_NUMERIC:
+                df_raw[col] = pd.to_numeric(df_raw[col], errors='coerce')
+
+            # ── ANALISIS MISSING VALUES ──────────────────────────────────────
+            # isnull().sum() menghitung jumlah NaN per kolom
+            # / len(df_raw) * 100 mengubahnya ke persentase
+            missing_pct = df_raw.isnull().sum() / len(df_raw) * 100
+            print(missing_pct.sort_values(ascending=False))
+            """), language="python")
+
+            st.markdown(dedent("""
+            <div class="insight-box" style="margin-top:12px;">
+              <div class="insight-title">Mengapa StandardScaler Digunakan?</div>
+              <p>
+                StandardScaler mengubah setiap fitur numerik sehingga memiliki mean (rata-rata) = 0
+                dan standard deviation = 1. Ini penting karena model seperti Linear Regression dan SVM
+                sangat sensitif terhadap skala fitur -- jika satu fitur berkisar 0-100 dan fitur lain
+                0-10,000,000 (populasi), model akan "terlalu memperhatikan" fitur berskala besar.
+                Random Forest sendiri tidak memerlukan scaling (karena bekerja dengan perbandingan relatif),
+                namun kita tetap menyertakannya untuk konsistensi pipeline dan kemudahan ekspansi ke model lain.
+              </p>
+            </div>
+            """), unsafe_allow_html=True)
+
+        with st.expander("Cell 2 -- Feature Engineering dan Cross-Validation 5-Fold"):
+            st.markdown(dedent("""
+            <div class="guide-card">
+              <div class="guide-title">Mengapa Cross-Validation, Bukan Sekadar Train-Test Split?</div>
+              <div class="guide-body">
+                Train-Test Split biasa (80-20) hanya mengevaluasi model satu kali pada satu subset tertentu.
+                Hasilnya bisa bias: mungkin secara kebetulan subset test kita "mudah" atau "sulit".
+                K-Fold Cross Validation mengevaluasi model K kali dengan pembagian data yang berbeda setiap iterasi,
+                memberikan estimasi performa yang jauh lebih stabil dan dapat dipercaya. Standar di komunitas ML
+                adalah 5-fold atau 10-fold CV untuk dataset menengah seperti ini.
+              </div>
+            </div>
+            """), unsafe_allow_html=True)
+
+            st.code(dedent("""
+            # ── K-FOLD CROSS VALIDATION ──────────────────────────────────────
+            # KFold membagi data menjadi K=5 bagian (fold) secara merata.
+            # shuffle=True mengacak urutan data sebelum dibagi -- penting jika
+            # data diurutkan berdasarkan tahun atau wilayah (yang bisa menciptakan
+            # bias temporal/geografis dalam evaluasi).
+            # random_state=42 memastikan hasil dapat direproduksi.
+
+            kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+            # Alur K-Fold untuk K=5:
+            # Iterasi 1: Latih di fold 2,3,4,5 --> Test di fold 1
+            # Iterasi 2: Latih di fold 1,3,4,5 --> Test di fold 2
+            # Iterasi 3: Latih di fold 1,2,4,5 --> Test di fold 3
+            # Iterasi 4: Latih di fold 1,2,3,5 --> Test di fold 4
+            # Iterasi 5: Latih di fold 1,2,3,4 --> Test di fold 5
+            # SETIAP data pernah menjadi data test TEPAT 1 kali.
+            # Hasil akhir: RATA-RATA dari 5 nilai R2 (lebih andal dari 1 nilai saja).
+
+            MODELS = {
+                'Linear Regression'  : LinearRegression(),
+                'Ridge Regression'   : Ridge(alpha=1.0),         # L2 regularization
+                'Decision Tree'      : DecisionTreeRegressor(max_depth=10),
+                'Random Forest'      : RandomForestRegressor(n_estimators=100),
+                'Gradient Boosting'  : GradientBoostingRegressor(n_estimators=100),
+            }
+
+            hasil_cv = {}
+            for nama, mdl in MODELS.items():
+                # Pipeline menggabungkan preprocessing + model menjadi satu unit
+                # PENTING: preprocessing (imputer, scaler) HARUS masuk pipeline
+                # agar tidak terjadi "data leakage" -- yaitu informasi dari data test
+                # bocor ke proses pelatihan (yang akan membuat evaluasi terlalu optimis)
+                pipe = Pipeline([('preprocessor', preprocessor), ('model', mdl)])
+
+                # cross_val_score menjalankan CV secara otomatis
+                # scoring='r2' menggunakan R2 Score sebagai metrik evaluasi
+                # n_jobs=-1 memanfaatkan semua CPU core untuk komputasi paralel
+                r2_scores = cross_val_score(pipe, X, y, cv=kf, scoring='r2', n_jobs=-1)
+                hasil_cv[nama] = {'r2_mean': r2_scores.mean(), 'r2_std': r2_scores.std()}
+                print(f"{nama}: R2 = {r2_scores.mean():.4f} (+/- {r2_scores.std():.4f})")
+            """), language="python")
 
             for title, body in [
-                ("Linear Regression (R²=0.62) — Gagal", "Mengasumsikan output adalah kombinasi linear. Tidak bisa menangkap interaksi antar variabel — meleset jauh di kasus ekstrem."),
-                ("Decision Tree (R²=0.785) — Tidak Stabil", "Pohon tunggal mudah 'hafal' data latih (overfitting) — terlalu detail untuk data latih, gagal generalisasi ke data baru."),
-                ("Random Forest (R²=0.89) — Terbaik", "300 pohon berbeda, dilatih pada subset data acak. Error antar pohon tidak berkorelasi — saat dirata-rata, error saling mengkompensasi."),
-                ("Gradient Boosting (R²=0.885) — Hampir Setara", "Belajar dari kesalahan iteratif. Performa hampir setara RF, namun lebih sensitif terhadap hyperparameter dan lebih lambat."),
+                ("Hasil CV: Linear Regression R2=0.62 -- Mengapa Buruk?",
+                 "Linear Regression mengasumsikan output adalah KOMBINASI LINEAR dari input: PM2.5 = w1*PM10 + w2*latitude + ... + b. Realitanya, hubungan PM10-PM2.5 tidak linear (ada saturation effect di nilai tinggi) dan ada interaksi non-linear antar variabel (PM10 tinggi di Eropa vs Asia menghasilkan PM2.5 yang sangat berbeda). Keterbatasan fundamental ini menyebabkan R2 hanya 0.62."),
+                ("Hasil CV: Random Forest R2=0.89 -- Mengapa Terbaik?",
+                 "Random Forest mengatasi keterbatasan linear dengan membangun 100+ pohon keputusan, di mana setiap pohon dapat menangkap interaksi kompleks dan non-linear secara alami (melalui aturan IF-THEN yang bersarang). Averaging 100 pohon mengurangi variance secara drastis dibanding pohon tunggal (Decision Tree). Hasilnya: model yang akurat, stabil, dan tahan terhadap overfitting."),
             ]:
-                st.markdown(f'<div class="pt-item"><div class="pt-title">{title}</div><div class="pt-body">{body}</div></div>', unsafe_allow_html=True)
+                st.markdown(dedent(f"""
+                <div class="pt-item">
+                  <div class="pt-title">{title}</div>
+                  <div class="pt-body">{body}</div>
+                </div>
+                """), unsafe_allow_html=True)
 
-        with st.expander("Cell 3 — Training Final & Simpan Pipeline"):
-            st.code("""# Train/Test Split: 80% latih, 20% uji (tidak pernah dilihat model)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+        with st.expander("Cell 3 -- Training Model Final dan Menyimpan Pipeline"):
+            st.code(dedent("""
+            # ── TRAIN-TEST SPLIT FINAL ──────────────────────────────────────
+            # 80% data untuk pelatihan, 20% untuk evaluasi akhir yang bersih.
+            # test_size=0.2 mengalokasikan ~5,200 baris untuk test set.
+            # random_state=42 memastikan reproduktibilitas -- split yang sama
+            # setiap kali kode dijalankan, sehingga perbandingan antar eksperimen adil.
+            # stratify tidak digunakan karena ini adalah regresi, bukan klasifikasi.
 
-# .fit() melakukan 3 hal sekaligus:
-# 1. Preprocessor belajar MEDIAN dari X_train
-# 2. Preprocessor belajar kategori OHE dari X_train
-# 3. Random Forest dilatih dengan data yang sudah diproses
-final_pipeline.fit(X_train, y_train)
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, test_size=0.2, random_state=42
+            )
 
-# Simpan seluruh pipeline (preprocessor + model) ke file .pkl
-joblib.dump(final_pipeline, 'pipeline_pm25_final.pkl')""", language="python")
+            # ── KONFIGURASI HYPERPARAMETER FINAL ──────────────────────────
+            # n_estimators=300: lebih banyak pohon = lebih stabil, tapi lebih lambat.
+            #   Di notebook (eksperimen) pakai 100, di produksi (build_pipeline.py) pakai 300.
+            # min_samples_leaf=2: setiap daun minimal berisi 2 sampel.
+            #   Mencegah pohon terlalu spesifik pada satu data point (overfitting).
+            # max_features='sqrt': setiap split hanya mempertimbangkan sqrt(n_fitur) fitur.
+            #   Meningkatkan diversitas antar pohon, kunci keberhasilan Random Forest.
+            # n_jobs=-1: gunakan semua CPU core yang tersedia untuk training paralel.
 
-    # ── TAB: BUILD_PIPELINE ──────────────────────────────────────────────
+            final_pipeline = Pipeline([
+                ('preprocessor', preprocessor),
+                ('model', RandomForestRegressor(
+                    n_estimators=300,
+                    min_samples_leaf=2,
+                    max_features='sqrt',
+                    random_state=42,
+                    n_jobs=-1,
+                ))
+            ])
+
+            # .fit() melakukan 3 hal sekaligus dalam urutan:
+            # 1. Preprocessor menghitung median DARI X_train (bukan X_test!)
+            # 2. Preprocessor menghitung parameter OHE dari X_train
+            # 3. Random Forest melatih 300 pohon menggunakan data yang sudah diproses
+            final_pipeline.fit(X_train, y_train)
+
+            # ── SIMPAN PIPELINE KE FILE .pkl ──────────────────────────────
+            # joblib.dump lebih efisien dari pickle untuk objek NumPy/sklearn besar.
+            # File .pkl berisi SELURUH pipeline: median imputer values, OHE categories,
+            # dan 300 pohon keputusan dengan semua percabangan dan nilai daun.
+            # Saat di-load kembali, pipeline siap melakukan prediksi tanpa perlu training ulang.
+            import joblib
+            joblib.dump(final_pipeline, 'pipeline_pm25_final.pkl')
+            print(f"Pipeline tersimpan: {os.path.getsize('pipeline_pm25_final.pkl')/1024/1024:.1f} MB")
+            """), language="python")
+
+            st.markdown(dedent("""
+            <div class="insight-box" style="margin-top:12px;">
+              <div class="insight-title">Konsep Krusial: Data Leakage dan Cara Mencegahnya</div>
+              <p>
+                Data Leakage adalah salah satu kesalahan paling fatal dalam machine learning. Ini terjadi
+                ketika informasi dari DATA TEST secara tidak sengaja "bocor" ke proses pelatihan, membuat
+                model tampak lebih akurat dari yang sebenarnya.
+                <br><br>
+                <strong>Contoh Data Leakage:</strong> Jika kita menghitung nilai median PM10 dari SELURUH
+                dataset (termasuk test set), lalu menggunakannya untuk mengimputasi training data -- berarti
+                median tersebut "terpengaruh" oleh test set. Model menjadi terlalu optimis karena telah
+                "melihat" sebagian test set secara tidak langsung.
+                <br><br>
+                <strong>Solusi: Pipeline dengan fit hanya pada Training Data</strong><br>
+                Dengan memasukkan SimpleImputer dan StandardScaler ke dalam sklearn Pipeline,
+                perintah pipeline.fit(X_train, y_train) memastikan imputer dan scaler HANYA mempelajari
+                statistik dari X_train. Ketika pipeline.predict(X_test) dipanggil, X_test diproses
+                menggunakan statistik yang dipelajari dari X_train -- persis seperti kondisi produksi nyata
+                di mana data baru belum pernah kita lihat sebelumnya.
+              </p>
+            </div>
+            """), unsafe_allow_html=True)
+
     with tab_build:
-        st.markdown(f'<div style="margin:14px 0 10px;"><div class="eyebrow">{ic("cpu", 12, "#60a5fa")} Script Produksi</div><div class="section-title">build_pipeline.py — Pabrik Produksi Model</div></div>', unsafe_allow_html=True)
-        st.markdown('<div class="callout"><strong>Peran:</strong> Script produksi yang dijalankan sekali dari terminal (<code>python build_pipeline.py</code>) untuk menghasilkan file <code>pipeline_pm25_final.pkl</code>.</div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div style="margin:14px 0 10px;">
+          <div class="eyebrow">Script Produksi</div>
+          <div class="section-title">build_pipeline.py -- Pabrik Otomatis Produksi Model</div>
+        </div>
+        <div class="callout">
+          <strong>Peran dalam Arsitektur Proyek:</strong> build_pipeline.py adalah script yang dijalankan
+          SATU KALI dari terminal dengan perintah <code>python build_pipeline.py</code> untuk menghasilkan
+          file pipeline_pm25_final.pkl. Script ini dirancang untuk production readiness: validasi file,
+          logging informatif, penanganan error, dan konfigurasi model yang lebih kuat dari versi notebook.
+          Setelah .pkl dihasilkan, tidak perlu menjalankan script ini lagi kecuali ingin melatih ulang model.
+        </div>
+        """), unsafe_allow_html=True)
 
-        for title, exp, code_str in [
-            ("Tahap 1 & 2 — Validasi File & Memuat Data",
-             "Script memeriksa keberadaan file sebelum melanjutkan — fail fast dengan pesan yang jelas.",
-             """if not os.path.exists(TRAIN_FILE):
-    print(f"File tidak ditemukan: {TRAIN_FILE}")
-    sys.exit(1)   # Keluar dengan kode error (bukan 0 = sukses)
+        with st.expander("Tahap 1 & 2 -- Validasi File dan Pembersihan Data", expanded=True):
+            st.code(dedent("""
+            # ── VALIDASI KEBERADAAN FILE ────────────────────────────────────
+            # os.path.exists() mengembalikan True/False tanpa menimbulkan exception.
+            # sys.exit(1) menghentikan program dengan exit code 1 (error).
+            # Konvensi: exit code 0 = sukses, exit code lainnya = error.
+            # "Fail fast" adalah prinsip penting: lebih baik gagal di awal dengan
+            # pesan yang jelas daripada crash di tengah proses setelah menit-menit berjalan.
 
-# Konversi kolom numerik, abaikan nilai tidak valid
-for col in NUM_COLS + [TARGET_COL]:
-    df[col] = pd.to_numeric(df[col], errors='coerce')
+            if not os.path.exists(TRAIN_FILE):
+                print(f"File tidak ditemukan: {TRAIN_FILE}")
+                sys.exit(1)
 
-# Hapus nilai target negatif atau nol (tidak mungkin secara fisika)
-df_model = df_model[df_model[TARGET_COL] > 0]"""),
-            ("Tahap 3 — Pipeline dengan Konfigurasi Produksi",
-             "build_pipeline.py menggunakan konfigurasi lebih kuat: 300 pohon (notebook hanya 100).",
-             """RandomForestRegressor(
-    n_estimators      = 300,   # 3x lebih banyak pohon dari notebook
-    max_depth         = None,  # Pohon tumbuh sampai sempurna
-    min_samples_split = 4,     # Minimal 4 sampel untuk percabangan baru
-    min_samples_leaf  = 2,     # Minimal 2 sampel di daun (anti overfitting)
-    max_features      = "sqrt",# akar(n_fitur) fitur per split → randomisasi
-    n_jobs            = -1,    # Paralel di semua CPU core
-    random_state      = 42,    # Reproduktibilitas
-)"""),
-            ("Tahap 6 — Simpan & Verifikasi",
-             "Pipeline disimpan ke .pkl beserta ukuran file untuk verifikasi integritas.",
-             """joblib.dump(pipeline, PIPELINE_FILE)
+            # ── PEMBERSIHAN DATA ─────────────────────────────────────────────
+            # pd.to_numeric dengan errors='coerce' adalah strategi defensif:
+            # jika ada sel yang berisi teks seperti "-", "N/A", atau "" (kosong),
+            # akan dikonversi ke NaN daripada menimbulkan ValueError.
+            for col in NUM_COLS + [TARGET_COL]:
+                df[col] = pd.to_numeric(df[col], errors='coerce')
 
-# Verifikasi ukuran file — file terlalu kecil mungkin corrupt
-size_mb = os.path.getsize(PIPELINE_FILE) / (1024 * 1024)
-print(f"Ukuran file: {size_mb:.1f} MB")
+            # Hapus baris dengan target tidak valid
+            # dropna(subset=[TARGET_COL]): hapus baris di mana PM2.5 adalah NaN
+            df_model = df.dropna(subset=[TARGET_COL]).copy()
 
-# File .pkl berisi:
-# - Nilai median tiap kolom numerik (dipelajari dari X_train)
-# - Mapping kategori OHE untuk 'who_region'
-# - 300 pohon keputusan dengan semua cabang"""),
-        ]:
-            with st.expander(title):
-                st.markdown(f'<div class="guide-card"><div class="guide-title">Tujuan</div><div class="guide-body">{exp}</div></div>', unsafe_allow_html=True)
-                st.code(code_str, language="python")
+            # Hapus nilai target negatif atau nol -- tidak mungkin secara fisika.
+            # Konsentrasi partikel tidak bisa negatif. Jika ada, itu error pengukuran.
+            df_model = df_model[df_model[TARGET_COL] > 0]
 
-    # ── TAB: GENERATE_DARK_CHARTS ────────────────────────────────────────
+            # Laporan jumlah baris hilang -- penting untuk audit kualitas data
+            print(f"Data tersedia setelah pembersihan: {len(df_model):,} baris")
+            """), language="python")
+
+        with st.expander("Tahap 3 -- Arsitektur Pipeline Produksi dengan ColumnTransformer"):
+            st.code(dedent("""
+            # ── SUB-PIPELINE UNTUK KOLOM NUMERIK ───────────────────────────
+            # Dua langkah berurutan: imputasi lalu standarisasi.
+            # Urutan penting: kita harus mengisi NaN SEBELUM standarisasi,
+            # karena StandardScaler tidak bisa menangani NaN.
+
+            num_pipeline = Pipeline([
+                ("imputer", SimpleImputer(strategy="median")),
+                # Median lebih robust dari mean terhadap outlier.
+                # Jika PM10 = [5, 8, 12, 200], mean = 56.25 (tidak representatif)
+                # tapi median = 10 (lebih representatif dari nilai "normal").
+
+                ("scaler",  StandardScaler()),
+                # Mengubah setiap fitur ke mean=0, std=1.
+                # Formula: x_scaled = (x - mean) / std
+                # Contoh: PM10 = [5, 8, 12] -> [-1.2, -0.2, 1.3]
+                # Semua fitur numerik menjadi sebanding skalanya.
+            ])
+
+            # ── SUB-PIPELINE UNTUK KOLOM KATEGORIKAL ───────────────────────
+            cat_pipeline = Pipeline([
+                ("imputer", SimpleImputer(strategy="constant", fill_value="Unknown")),
+                # Strategi "constant": isi NaN dengan string "Unknown".
+                # Bukan median/mean karena data kategorikal tidak memiliki rata-rata.
+                # "Unknown" diperlakukan sebagai kategori baru oleh OneHotEncoder.
+
+                ("ohe", OneHotEncoder(handle_unknown="ignore", sparse=False)),
+                # Mengubah who_region (7 nilai unik) menjadi 7 kolom biner (0 atau 1).
+                # Contoh: "3_Sear" -> [0, 0, 1, 0, 0, 0, 0]
+                # handle_unknown="ignore": jika saat prediksi ada nilai who_region baru
+                # yang tidak ada di data latih, OHE menghasilkan semua 0 (bukan error).
+            ])
+
+            # ── COLUMN TRANSFORMER: MENGGABUNGKAN KEDUA JALUR ──────────────
+            # ColumnTransformer menerapkan transformasi berbeda ke kolom berbeda secara paralel.
+            # ("num", num_pipeline, NUM_COLS): terapkan num_pipeline ke 8 kolom numerik
+            # ("cat", cat_pipeline, CAT_COLS): terapkan cat_pipeline ke 1 kolom kategorik
+            # Hasilnya digabungkan menjadi satu matriks: 8 + 7 = 15 fitur total.
+
+            preprocessor = ColumnTransformer([
+                ("num", num_pipeline, NUM_COLS),
+                ("cat", cat_pipeline, CAT_COLS),
+            ])
+
+            # ── PIPELINE AKHIR: PREPROCESSING + MODEL ──────────────────────
+            pipeline = Pipeline([
+                ("preprocessor", preprocessor),
+                ("model", RandomForestRegressor(
+                    n_estimators      = 300,    # 3x lebih banyak dari eksperimen notebook
+                    max_depth         = None,   # Pohon tumbuh penuh (tidak dibatasi)
+                    min_samples_split = 4,      # Minimal 4 sampel untuk membuat percabangan baru
+                    min_samples_leaf  = 2,      # Minimal 2 sampel di setiap daun (anti-overfitting)
+                    max_features      = "sqrt", # Pertimbangkan sqrt(15) ~ 4 fitur per split
+                    n_jobs            = -1,     # Paralel di semua CPU core
+                    random_state      = 42,     # Reproduktibilitas
+                )),
+            ])
+            """), language="python")
+
+        with st.expander("Tahap 5 & 6 -- Evaluasi Metrik dan Menyimpan Pipeline"):
+            st.code(dedent("""
+            # ── EVALUASI KOMPREHENSIF ─────────────────────────────────────
+            # Penting: evaluasi di TRAINING data dan TEST data KEDUANYA.
+            # Perbedaan besar antara train dan test = overfitting (model "hafal" training).
+            # Perbedaan kecil = generalisasi yang baik.
+
+            y_pred_train = pipeline.predict(X_train)
+            y_pred_test  = pipeline.predict(X_test)
+
+            # Tiga metrik evaluasi yang saling melengkapi:
+            mae_test  = mean_absolute_error(y_test, y_pred_test)
+            # MAE = rata-rata |y_aktual - y_prediksi|
+            # Interpretasi langsung: rata-rata model meleset ±mae_test ug/m3
+            # Keunggulan: tidak sensitif outlier (tidak dikuadratkan)
+
+            rmse_test = np.sqrt(mean_squared_error(y_test, y_pred_test))
+            # RMSE = akar(rata-rata (y_aktual - y_prediksi)^2)
+            # Interpretasi: seperti MAE tapi kesalahan BESAR dihukum lebih berat
+            # Keunggulan: dalam satuan yang sama (ug/m3), lebih sensitif outlier
+
+            r2_test   = r2_score(y_test, y_pred_test)
+            # R2 = 1 - (SS_res / SS_tot)
+            # SS_res = sum of squared residuals (kesalahan model)
+            # SS_tot = total variance dalam y (jika model hanya memprediksi rata-rata)
+            # R2=0.89 berarti model 89% lebih baik dari model "prediksi selalu rata-rata"
+
+            print(f"MAE  : {mae_test:.4f} ug/m3")
+            print(f"RMSE : {rmse_test:.4f} ug/m3")
+            print(f"R2   : {r2_test:.4f}")
+
+            # ── MENYIMPAN PIPELINE KE FILE .pkl ──────────────────────────
+            joblib.dump(pipeline, "pipeline_pm25_final.pkl")
+
+            # Verifikasi ukuran: model Random Forest dengan 300 pohon biasanya 20-100 MB.
+            # Jika terlalu kecil (<1 MB), ada yang salah. Jika terlalu besar (>500 MB),
+            # pertimbangkan mengurangi n_estimators atau max_depth.
+            size_mb = os.path.getsize("pipeline_pm25_final.pkl") / (1024 * 1024)
+            print(f"Ukuran file: {size_mb:.1f} MB")
+            # File .pkl yang tersimpan berisi:
+            # 1. Nilai median setiap fitur numerik (dipelajari dari X_train)
+            # 2. Kategori yang dikenali OHE untuk who_region (dipelajari dari X_train)
+            # 3. 300 pohon keputusan lengkap dengan semua percabangan dan nilai daun
+            """), language="python")
+
     with tab_charts:
-        st.markdown(f'<div style="margin:14px 0 10px;"><div class="eyebrow">{ic("bar", 12, "#60a5fa")} Script Visualisasi</div><div class="section-title">generate_dark_charts.py — Pembuat Grafik Tema Gelap</div></div>', unsafe_allow_html=True)
-        st.markdown('<div class="callout"><strong>Peran:</strong> Script utilitas untuk menghasilkan grafik EDA dan evaluasi model sebagai file PNG statis beresolusi tinggi (dpi=150) untuk laporan akademik atau presentasi.</div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div style="margin:14px 0 10px;">
+          <div class="eyebrow">Script Visualisasi</div>
+          <div class="section-title">generate_dark_charts.py -- Pembuat Grafik Tema Gelap untuk Laporan</div>
+        </div>
+        <div class="callout">
+          <strong>Peran dalam Arsitektur Proyek:</strong> Script utilitas mandiri yang menghasilkan 5 file PNG
+          beresolusi tinggi (dpi=150) untuk digunakan dalam laporan akademik, presentasi, atau poster.
+          Script ini berdiri sendiri -- tidak bergantung pada Streamlit -- dan menggunakan matplotlib/seaborn
+          murni. Tema gelap dipilih untuk konsistensi visual dengan dashboard Streamlit dan karena terlihat
+          lebih modern dalam presentasi dengan background gelap.
+        </div>
+        """), unsafe_allow_html=True)
 
-        for title, exp, code_str in [
-            ("Konfigurasi Tema Gelap Global via rcParams",
-             "plt.rcParams.update() mengubah pengaturan default semua grafik Matplotlib secara global. Satu blok konfigurasi → semua grafik otomatis konsisten.",
-             """plt.rcParams.update({
-    'figure.facecolor': '#090d16',   # Latar belakang figure
-    'axes.facecolor'  : '#111827',   # Latar belakang area plot
-    'text.color'      : '#f1f5f9',   # Semua teks → hampir putih
-    'axes.labelcolor' : '#f1f5f9',   # Label sumbu X dan Y
-    'xtick.color'     : '#94a3b8',   # Angka sumbu X → abu-abu
-    'ytick.color'     : '#94a3b8',   # Angka sumbu Y → abu-abu
-    'legend.facecolor': '#111827',   # Background kotak legenda
-})"""),
-            ("Helper apply_dark_theme_axes()",
-             "Fungsi pembantu untuk setiap subplot. Prinsip DRY: satu fungsi menggantikan 6+ baris kode berulang.",
-             """def apply_dark_theme_axes(ax, title=""):
-    ax.set_title(title, color='#64d2ff', pad=12)
-    ax.grid(True, linestyle='--', alpha=0.5, color='#1e293b')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_color('#334155')
-    ax.spines['bottom'].set_color('#334155')"""),
-            ("Menyimpan Grafik Beresolusi Tinggi",
-             "plt.close() setelah savefig penting untuk mencegah memory leak saat membuat banyak grafik.",
-             """plt.savefig(
-    'evaluasi_model_final.png',
-    dpi=150,              # 150 DPI → resolusi tinggi untuk cetak
-    facecolor='#090d16',  # Background figure saat disimpan
-    bbox_inches='tight'   # Potong whitespace berlebih di tepi
-)
-plt.close()   # WAJIB: bebaskan memori setelah menyimpan"""),
-        ]:
-            with st.expander(title):
-                st.markdown(f'<div class="guide-card"><div class="guide-title">Tujuan</div><div class="guide-body">{exp}</div></div>', unsafe_allow_html=True)
-                st.code(code_str, language="python")
+        with st.expander("Konfigurasi Tema Gelap Global dengan plt.rcParams", expanded=True):
+            st.code(dedent("""
+            # ── KONFIGURASI GLOBAL MATPLOTLIB ──────────────────────────────
+            # plt.rcParams adalah dictionary yang mengontrol semua default matplotlib.
+            # Mengubahnya SEKALI di awal mempengaruhi SEMUA grafik yang dibuat sesudahnya
+            # dalam sesi yang sama -- prinsip DRY (Don't Repeat Yourself).
+            # Tanpa ini, setiap grafik harus dikonfigurasi manual (20+ baris per grafik).
 
-    # ── TAB: APP.PY ──────────────────────────────────────────────────────
+            plt.rcParams.update({
+                'figure.facecolor': '#090d16',   # Warna latar belakang FIGURE (area di luar plot)
+                'axes.facecolor'  : '#111827',   # Warna latar belakang AXES (area plot itu sendiri)
+                'text.color'      : '#f1f5f9',   # Warna default SEMUA teks (judul, label, dll)
+                'axes.labelcolor' : '#f1f5f9',   # Warna label sumbu X dan Y secara spesifik
+                'xtick.color'     : '#94a3b8',   # Warna angka-angka pada sumbu X
+                'ytick.color'     : '#94a3b8',   # Warna angka-angka pada sumbu Y
+                'axes.edgecolor'  : '#334155',   # Warna garis bingkai plot (spines)
+                'grid.color'      : '#1e293b',   # Warna garis kisi (gridlines)
+                'font.family'     : 'sans-serif',# Jenis huruf default
+                'font.size'       : 10,          # Ukuran huruf default (dalam points)
+                'axes.titlesize'  : 12,          # Ukuran huruf judul grafik
+                'axes.titleweight': 'bold',      # Tebal atau tidak judul grafik
+                'legend.facecolor': '#111827',   # Warna background kotak legenda
+                'legend.edgecolor': '#334155',   # Warna border kotak legenda
+                'figure.autolayout': False       # Nonaktifkan auto-layout (kita atur manual)
+            })
+            """), language="python")
+
+        with st.expander("Helper Function apply_dark_theme_axes() -- Prinsip DRY"):
+            st.code(dedent("""
+            # ── FUNGSI PEMBANTU UNTUK SETIAP SUBPLOT ───────────────────────
+            # Fungsi ini menerapkan styling dark theme ke satu axes (subplot).
+            # Tanpa fungsi ini, kita harus mengetik 6+ baris kode berulang
+            # untuk setiap subplot -- dan jika ingin mengubah warna, harus ubah
+            # di setiap tempat. Dengan fungsi ini, cukup ubah di satu tempat.
+
+            def apply_dark_theme_axes(ax, title=""):
+                # Judul subplot dengan warna biru terang (#64d2ff)
+                ax.set_title(title, color='#64d2ff', pad=12)
+
+                # Garis kisi horizontal dan vertikal -- membantu membaca nilai
+                # linestyle='--': garis putus-putus, alpha=0.5: setengah transparan
+                ax.grid(True, linestyle='--', alpha=0.5, color='#1e293b')
+
+                # Hilangkan garis bingkai atas dan kanan (terlihat lebih modern)
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+
+                # Garis bingkai kiri dan bawah dengan warna slate-700
+                ax.spines['left'].set_color('#334155')
+                ax.spines['bottom'].set_color('#334155')
+
+            # CONTOH PENGGUNAAN:
+            fig, ax = plt.subplots()
+            ax.hist(data, color='#64d2ff')
+            apply_dark_theme_axes(ax, 'Judul Grafik Saya')
+            # Hasilnya: histogram dengan tema gelap + judul + grid + styling bingkai
+            """), language="python")
+
+        with st.expander("Menyimpan File PNG Beresolusi Tinggi"):
+            st.code(dedent("""
+            # ── MENYIMPAN GRAFIK ─────────────────────────────────────────
+            # plt.savefig() adalah perintah akhir yang menyimpan figure ke disk.
+            # Parameter yang digunakan:
+
+            plt.savefig(
+                'nama_file.png',       # Path dan nama file output
+                dpi=150,               # Dots Per Inch -- resolusi gambar
+                                       # 72 DPI: layar; 150 DPI: web/presentasi; 300 DPI: cetak
+                                       # 150 DPI dipilih: balance kualitas dan ukuran file
+                facecolor='#090d16',   # Warna background figure saat disimpan
+                                       # PENTING: tanpa ini, background mungkin putih
+                                       # meskipun plt.rcParams sudah diset
+                bbox_inches='tight'    # Memotong whitespace kosong di tepi gambar
+                                       # agar output rapi tanpa margin berlebih
+            )
+
+            # plt.close() WAJIB dipanggil setelah savefig!
+            # Matplotlib menyimpan figure di memori sampai explisit ditutup.
+            # Jika membuat 100 grafik tanpa plt.close(), memori akan penuh (memory leak).
+            # plt.close() membebaskan memori yang digunakan figure tersebut.
+            plt.close()
+
+            # Untuk animasi atau multiple pages, gunakan plt.close('all')
+            # yang menutup SEMUA figure yang masih terbuka sekaligus.
+            """), language="python")
+
     with tab_app:
-        st.markdown(f'<div style="margin:14px 0 10px;"><div class="eyebrow">{ic("globe", 12, "#60a5fa")} Frontend Aplikasi</div><div class="section-title">app.py — Aplikasi Streamlit Produksi</div></div>', unsafe_allow_html=True)
-        st.markdown('<div class="callout"><strong>Peran:</strong> Wajah publik proyek — menghubungkan model ML dengan pengguna menggunakan Streamlit yang mengubah Python biasa menjadi web app interaktif.</div>', unsafe_allow_html=True)
+        st.markdown(dedent("""
+        <div style="margin:14px 0 10px;">
+          <div class="eyebrow">Frontend Aplikasi Web</div>
+          <div class="section-title">app.py -- Aplikasi Streamlit Produksi</div>
+        </div>
+        <div class="callout">
+          <strong>Peran dalam Arsitektur Proyek:</strong> app.py adalah "wajah publik" proyek -- antarmuka
+          yang dihadapi pengguna akhir. Ia memuat model dari .pkl, menerima input dari pengguna melalui
+          widget Streamlit, menjalankan prediksi, dan menampilkan hasil dalam format yang mudah dipahami.
+          Streamlit mengubah kode Python menjadi web application tanpa memerlukan pengetahuan HTML/CSS/JavaScript.
+        </div>
+        """), unsafe_allow_html=True)
 
-        for title, exp, code_str in [
-            ("@st.cache_resource — Memuat Model Hanya Sekali",
-             "Tanpa cache, setiap klik memicu reload model (30+ detik). Dengan cache, model dimuat sekali, akses berikutnya instan.",
-             """@st.cache_resource   # Hanya jalankan fungsi ini SATU KALI
-def load_model():
-    if os.path.exists('pipeline_pm25_final.pkl'):
-        return joblib.load('pipeline_pm25_final.pkl')
-    # Fallback: latih model on-the-fly jika .pkl tidak ada
-    return train_model_fallback()"""),
-            ("st.session_state — Memori Lintas Re-run",
-             "Setiap interaksi user memicu re-run seluruh script — variabel lokal hilang. st.session_state adalah 'memori' yang bertahan antar re-run.",
-             """# Inisialisasi state pertama kali halaman dibuka
-if "eda_step" not in st.session_state:
-    st.session_state.eda_step = 1
+        with st.expander("@st.cache_resource -- Memuat Model Hanya Sekali", expanded=True):
+            st.code(dedent("""
+            # ── MASALAH TANPA CACHE ──────────────────────────────────────
+            # Streamlit me-rerun SELURUH script dari atas ke bawah setiap kali
+            # user mengklik tombol, menggeser slider, atau mengubah input apapun.
+            # Tanpa cache, joblib.load() akan dipanggil setiap rerun = memuat
+            # file .pkl berulang kali = latensi 5-30 detik setiap interaksi.
 
-def go_step(step_baru):
-    st.session_state.eda_step = step_baru
+            # ── SOLUSI: @st.cache_resource ────────────────────────────────
+            # Decorator ini mengubah fungsi menjadi "cached resource":
+            # Pertama kali dipanggil: eksekusi fungsi dan simpan hasilnya di memori.
+            # Panggilan berikutnya: langsung kembalikan hasil yang tersimpan.
+            # Hasil disimpan sepanjang session (tidak hilang saat rerun).
+            # Cocok untuk objek berat yang di-sharing antar pengguna: model ML, koneksi DB.
 
-# Tombol dengan on_click callback untuk mengubah state
-st.button("Berikutnya →", on_click=go_step, args=(2,))"""),
-            ("Sistem Navigasi Multi-Halaman",
-             "Streamlit tidak memiliki router bawaan. st.radio() di sidebar sebagai selector halaman dengan blok if/elif sebagai 'router' manual.",
-             """menu = st.radio("NAVIGASI", [
-    "🏠  Beranda & Prediksi",
-    "🌍  Demo Kasus Nyata",
-    "✨  Explainability AI",
-    ...
-])
+            @st.cache_resource  # Model dimuat SATU KALI, dipakai BERKALI-KALI
+            def load_model():
+                if os.path.exists("pipeline_pm25_final.pkl"):
+                    try:
+                        return joblib.load("pipeline_pm25_final.pkl")
+                    except Exception as e:
+                        st.error(f"Gagal memuat .pkl: {e}")
+                # Fallback: latih ulang jika .pkl tidak ada
+                return _train_fallback()
 
-if "🏠" in menu:
-    # Render halaman beranda
-    ...
-elif "🌍" in menu:
-    # Render halaman demo
-    ..."""),
-            ("Export CSV & Excel",
-             "Fungsi make_csv() dan make_excel() menghasilkan file unduhan dari dictionary hasil prediksi.",
-             """def make_csv(data: dict) -> bytes:
-    df = pd.DataFrame([data])
-    return df.to_csv(index=False).encode("utf-8")
+            # ── @st.cache_data untuk DataFrame ────────────────────────────
+            # Perbedaan: cache_resource untuk objek yang tidak bisa diserialisasi
+            # (model ML, koneksi database); cache_data untuk data (DataFrame, list, dict).
+            # cache_data membuat COPY saat dikembalikan (thread-safe), cache_resource tidak.
 
-def make_excel(data: dict) -> bytes:
-    df = pd.DataFrame([data])
-    buf = io.BytesIO()
-    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Prediction")
-    return buf.getvalue()
+            @st.cache_data
+            def load_data():
+                return pd.read_csv("action2024/train.csv", low_memory=False)
+            """), language="python")
 
-# Digunakan bersama st.download_button()
-st.download_button("Download CSV", data=make_csv(result), ...)"""),
-        ]:
-            with st.expander(title):
-                st.markdown(f'<div class="guide-card"><div class="guide-title">Tujuan</div><div class="guide-body">{exp}</div></div>', unsafe_allow_html=True)
-                st.code(code_str, language="python")
+        with st.expander("st.session_state -- Memori yang Persisten Antar Rerun"):
+            st.code(dedent("""
+            # ── MASALAH TANPA session_state ──────────────────────────────
+            # Setiap kali Streamlit rerun, semua variabel Python lokal di-reset ke nilai awal.
+            # Jika user sedang di Step 3 dari flow multi-langkah dan mengklik sesuatu,
+            # tanpa session_state variabel 'current_step' akan kembali ke 1 (nilai awal).
 
-        st.markdown("""
+            # ── SOLUSI: st.session_state ──────────────────────────────────
+            # st.session_state adalah dictionary khusus yang PERSISTEN antar rerun.
+            # Nilainya tidak hilang ketika script di-rerun karena user berinteraksi.
+
+            # Inisialisasi: set nilai default HANYA jika kunci belum ada.
+            # Tanpa pengecekan "not in", setiap rerun akan me-reset nilai ke awal.
+            if "eda_step" not in st.session_state:
+                st.session_state.eda_step = 1
+
+            # Memodifikasi state melalui callback function (bukan langsung dalam script).
+            # Callback dipanggil SEBELUM rerun, sehingga nilai state sudah terupdate
+            # ketika script dieksekusi ulang.
+            def go_step(step_baru):
+                st.session_state.eda_step = step_baru
+
+            # Tombol dengan on_click callback: ketika diklik, go_step(2) dipanggil,
+            # mengubah session_state.eda_step menjadi 2, LALU Streamlit rerun.
+            # Saat rerun, kode membaca eda_step = 2 dan menampilkan konten Step 2.
+            st.button("Berikutnya", on_click=go_step, args=(2,))
+
+            # ── Contoh penggunaan lain: menyimpan pilihan demo kota ──────
+            if st.button("Jakarta"):
+                st.session_state.sel_demo = 0   # Simpan index kota yang dipilih
+
+            if "sel_demo" in st.session_state:
+                case = DEMO_CASES[st.session_state.sel_demo]
+                # Tampilkan hasil prediksi untuk kota yang dipilih
+            """), language="python")
+
+        with st.expander("Make Excel dengan Fallback Aman"):
+            st.code(dedent("""
+            # ── MASALAH ASLI: ModuleNotFoundError untuk openpyxl ─────────
+            # Di beberapa environment (Streamlit Community Cloud dengan konfigurasi
+            # tertentu), openpyxl mungkin tidak terinstal atau versinya incompatible.
+            # Error asli: "from openpyxl.workbook import Workbook" ModuleNotFoundError
+
+            # ── SOLUSI: Try-Except dengan Multiple Fallback ───────────────
+            def make_excel(data: dict) -> bytes:
+                df = pd.DataFrame([data])
+                buf = io.BytesIO()  # Buffer memori in-memory, bukan file disk
+
+                try:
+                    # Coba engine openpyxl (format .xlsx modern)
+                    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+                        df.to_excel(writer, index=False, sheet_name="Prediction")
+                except Exception:
+                    try:
+                        # Fallback ke xlsxwriter (alternatif yang lebih ringan)
+                        with pd.ExcelWriter(buf, engine="xlsxwriter") as writer:
+                            df.to_excel(writer, index=False, sheet_name="Prediction")
+                    except Exception:
+                        # Fallback terakhir: kembalikan CSV dalam bytes
+                        # (masih bisa dibuka di Excel meskipun bukan format .xlsx)
+                        return df.to_csv(index=False).encode("utf-8")
+
+                return buf.getvalue()  # Kembalikan bytes dari buffer memori
+
+            # buf = io.BytesIO() membuat "file" di memori RAM, bukan di disk.
+            # Ini lebih aman untuk web app karena tidak ada akses disk yang perlu
+            # dikelola, tidak ada file sementara yang perlu dihapus, dan otomatis
+            # dibersihkan oleh garbage collector Python saat tidak lagi digunakan.
+            """), language="python")
+
+        with st.expander("Sistem Navigasi Multi-Halaman dan CSS Injection"):
+            st.code(dedent("""
+            # ── NAVIGASI MULTI-HALAMAN DENGAN RADIO BUTTON ───────────────
+            # Streamlit tidak memiliki router URL bawaan untuk aplikasi single-page.
+            # Pola umum: gunakan st.radio() di sidebar sebagai "page selector".
+            # Nilai yang dipilih menentukan konten apa yang di-render.
+
+            menu = st.radio("NAVIGASI", [
+                "Beranda & Prediksi",
+                "Demo Kasus Nyata",
+                "Explainability AI",
+                # ...
+            ], label_visibility="collapsed")  # Sembunyikan label "NAVIGASI"
+
+            # Blok if/elif sebagai "router" manual:
+            if "Beranda" in menu:
+                # Render konten halaman beranda
+                pass
+            elif "Demo" in menu:
+                # Render konten halaman demo
+                pass
+
+            # ── CSS INJECTION MELALUI st.markdown ──────────────────────
+            # Streamlit mengizinkan injeksi HTML/CSS melalui st.markdown
+            # dengan parameter unsafe_allow_html=True.
+            # PERHATIAN: "unsafe" bukan berarti berbahaya -- hanya berarti
+            # Streamlit tidak mem-validate HTML yang diberikan. Tanggung jawab
+            # keamanan ada di developer.
+
+            GLOBAL_CSS = '''<style>
+            :root { --blue: #60a5fa; --text-1: #f0f4ff; }
+            .stApp { background: #06080f !important; }
+            label { color: var(--text-1) !important; }
+            </style>'''
+
+            # CSS ini diinjeksikan sekali di awal dan mempengaruhi seluruh halaman.
+            # Variabel CSS (:root { --nama: nilai }) memungkinkan perubahan
+            # warna global hanya dengan mengubah satu tempat.
+            st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
+            """), language="python")
+
+        st.markdown(dedent("""
         <div class="insight-box">
-          <div class="insight-title">Arsitektur Seluruh Proyek</div>
+          <div class="insight-title">Ringkasan Arsitektur Lengkap Proyek</div>
           <p>
-            <strong>proyek.ipynb</strong> → Eksplorasi dan eksperimen (data scientist bekerja di sini)<br>
-            <strong>build_pipeline.py</strong> → Produksi model (jalankan sekali → menghasilkan .pkl)<br>
-            <strong>pipeline_pm25_final.pkl</strong> → Artefak model tersimpan (output dari build_pipeline.py)<br>
-            <strong>generate_dark_charts.py</strong> → Grafik PNG statis untuk laporan/presentasi<br>
-            <strong>app.py</strong> → Frontend interaktif yang memuat .pkl dan melayani pengguna<br><br>
-            <strong>Alur kerja:</strong> jalankan build_pipeline.py SEKALI → jalankan <code>streamlit run app.py</code> BERKALI-KALI.
+            <strong>proyek.ipynb</strong> -- Laboratorium eksperimen: EDA, feature selection, perbandingan 5 algoritma via K-Fold CV, penentuan hyperparameter terbaik.<br>
+            <strong>build_pipeline.py</strong> -- Script produksi: memuat data, membersihkan, melatih model final (300 pohon), evaluasi, menyimpan ke pipeline_pm25_final.pkl. Jalankan SEKALI.<br>
+            <strong>pipeline_pm25_final.pkl</strong> -- Artefak model: file binary yang berisi seluruh pipeline (imputer + scaler + OHE + 300 pohon Random Forest). Ukuran ~30-80 MB.<br>
+            <strong>generate_dark_charts.py</strong> -- Script visualisasi: menghasilkan 5 grafik PNG berkualitas tinggi untuk laporan (missing values, distribusi, scatter, correlation, feature importance).<br>
+            <strong>app.py</strong> -- Frontend produksi: memuat .pkl, menerima input user, menjalankan prediksi, menampilkan hasil interaktif. Jalankan dengan <code>streamlit run app.py</code>.<br><br>
+            <strong>Alur Penggunaan:</strong><br>
+            1. Jalankan <code>python build_pipeline.py</code> satu kali untuk menghasilkan .pkl.<br>
+            2. Jalankan <code>streamlit run app.py</code> untuk menjalankan dashboard.<br>
+            3. Opsional: jalankan <code>python generate_dark_charts.py</code> untuk grafik laporan.<br>
+            4. Opsional: buka proyek.ipynb untuk eksplorasi dan eksperimen lebih lanjut.
           </p>
         </div>
-        """, unsafe_allow_html=True)
+        """), unsafe_allow_html=True)
