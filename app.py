@@ -495,7 +495,7 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 1: BERANDA UTAMA
 # ═══════════════════════════════════════════════════════════════════
-if menu == "🏠 Beranda Utama":
+if menu == "Beranda Utama":
     st.markdown("""
     <div class="hero-container">
         <h1 class="main-title" style="margin:0;">AirSense Dashboard</h1>
@@ -576,7 +576,7 @@ if menu == "🏠 Beranda Utama":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 2: DEMO KASUS NYATA
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "🧪 Demo Kasus Nyata":
+elif menu == "Demo Kasus Nyata":
     st.markdown('<h1 class="main-title">Demo Kasus Nyata Dunia</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Pilih salah satu dari 10 kota nyata di dunia untuk langsung melihat prediksi model, perbandingan antar model ML, dan analisis mengapa hasilnya bisa berbeda-beda.</p>', unsafe_allow_html=True)
 
@@ -813,7 +813,7 @@ elif menu == "🧪 Demo Kasus Nyata":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 3: PANDUAN & SUMBER INPUT
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "📖 Panduan & Sumber Input":
+elif menu == "Panduan & Sumber Input":
     st.markdown('<h1 class="main-title">Panduan & Sumber Data</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Pelajari cara menggunakan dashboard AirSense serta jelajahi informasi detail mengenai dataset WHO yang digunakan untuk melatih model kami.</p>', unsafe_allow_html=True)
     
@@ -1401,7 +1401,7 @@ elif menu == "⚙️ Alur & Proses Data":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 5: PENJELASAN KODE
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "💻 Penjelasan Kode":
+elif menu == "Penjelasan Kode":
     st.markdown('<h1 class="main-title">Penjelasan Kode Proyek</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Dokumentasi teknis lengkap dan mendalam untuk setiap komponen kode dalam proyek AirSense — mencakup proyek.ipynb, build_pipeline.py, generate_dark_charts.py, dan app.py ini sendiri.</p>', unsafe_allow_html=True)
     
