@@ -856,7 +856,7 @@ elif menu == "Panduan & Sumber Input":
 # HALAMAN 3: ⚙️ ALUR & PROSES DATA (STEP-BY-STEP SIMULATION)
 # ─────────────────────────────────────────────────────────────────
 elif menu == "Alur & Proses Data":
-    st.markdown('<h1 class="main-title">Eksplorasi Data & Evaluasi Model Secara Interaktif</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-title">Eksplorasi Data & Evaluasi Model</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Eksplorasi dataset WHO dan evaluasi model Machine Learning Anda langkah demi langkah. Pilih tahap analisis di bawah ini untuk melihat hasil visualisasi Plotly interaktif secara bertahap.</p>', unsafe_allow_html=True)
     
     # Session State untuk alur EDA step-by-step
