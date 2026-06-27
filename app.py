@@ -774,9 +774,14 @@ elif menu == "Panduan & Sumber Input":
                 {get_svg_icon("geo", 20, "#64d2ff")}
                 <span>1. Tentukan Parameter Lokasi & Demografi</span>
             </div>
-            <p style="font-size:0.88rem; color:#cbd5e1; line-height:1.6; margin:0;">
-                Buka halaman <strong>Beranda Utama</strong>. Masukkan koordinat wilayah Anda (Latitude dan Longitude), jumlah stasiun pemantau, serta jumlah populasi penduduk setempat.
-            </p>
+            <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
+                <p style="margin-top:0;">Mulailah dengan mengatur letak geografis dan profil demografi wilayah yang ingin dianalisis. Parameter ini sangat penting karena kepadatan penduduk dan lokasi lintang/bujur memiliki korelasi kuat dengan tingkat aktivitas industri, emisi kendaraan, dan iklim lokal.</p>
+                <ul style="margin-bottom:0; padding-left:20px; color:#94a3b8;">
+                    <li><strong>Letak Geografis:</strong> Masukkan Latitude dan Longitude wilayah Anda. <em>Contoh: Jakarta (-6.2088, 106.8456) atau Pontianak (-0.0227, 109.3333).</em></li>
+                    <li><strong>Populasi:</strong> Semakin tinggi jumlah populasi yang Anda masukkan, sistem akan mengekspektasikan tingkat polusi antropogenik (buatan manusia) yang lebih tinggi.</li>
+                    <li><strong>Wilayah WHO:</strong> Membantu model mengelompokkan tren polusi berdasarkan klaster benua (misal: regulasi udara di Eropa tentu berbeda dengan di Asia Tenggara).</li>
+                </ul>
+            </div>
         </div>
         
         <div class="guide-card" style="border-left-color: #a180ff;">
@@ -784,9 +789,14 @@ elif menu == "Panduan & Sumber Input":
                 {get_svg_icon("pollutant", 20, "#a180ff")}
                 <span>2. Masukkan Parameter Polutan Penunjang (Opsional)</span>
             </div>
-            <p style="font-size:0.88rem; color:#cbd5e1; line-height:1.6; margin:0;">
-                Jika Anda memiliki informasi konsentrasi PM10 atau Nitrogen Dioksida (NO₂), centang kotak dan masukkan angkanya untuk menaikkan akurasi estimasi model.
-            </p>
+            <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
+                <p style="margin-top:0;">Walaupun bersifat opsional, mengisi data polutan makro akan meningkatkan akurasi tebakan model Random Forest secara drastis. Hal ini karena partikulat dan gas buang memiliki kaitan fisik dan kimiawi yang sangat erat di udara bebas.</p>
+                <ul style="margin-bottom:0; padding-left:20px; color:#94a3b8;">
+                    <li><strong>PM10 (Partikel Kasar):</strong> Partikel seperti debu jalanan atau serbuk sari. Secara saintifik, jika PM10 tinggi, PM2.5 biasanya akan ikut melonjak. <em>Contoh level wajar: 30 - 45 µg/m³.</em></li>
+                    <li><strong>NO₂ (Nitrogen Dioksida):</strong> Gas beracun indikator hasil pembakaran kendaraan bermotor dan pembangkit listrik fosil. <em>Contoh level wajar: 15 - 20 µg/m³.</em></li>
+                    <li><strong>Imputasi Otomatis:</strong> Jika Anda tidak mencentang/memiliki data ini, sistem akan otomatis melakukan imputasi (pengisian nilai kosong) menggunakan nilai median historis dari database WHO agar prediksi tetap berjalan.</li>
+                </ul>
+            </div>
         </div>
         
         <div class="guide-card" style="border-left-color: #10b981;">
@@ -794,19 +804,27 @@ elif menu == "Panduan & Sumber Input":
                 {get_svg_icon("play", 20, "#10b981")}
                 <span>3. Jalankan Analisis Kualitas Udara</span>
             </div>
-            <p style="font-size:0.88rem; color:#cbd5e1; line-height:1.6; margin:0;">
-                Klik tombol <strong>"Analisis Kualitas Udara"</strong>. Sistem akan menghitung konsentrasi estimasi PM2.5 dan memberikan spanduk klasifikasi serta rekomendasi kesehatan secara instan.
-            </p>
+            <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
+                <p style="margin-top:0;">Setelah semua parameter dirasa sesuai, klik tombol <strong>"Analisis Kualitas Udara"</strong>. Mesin <em>Machine Learning</em> akan membandingkan input Anda dengan pola dari 25.000+ data historis dalam hitungan detik.</p>
+                <ul style="margin-bottom:0; padding-left:20px; color:#94a3b8;">
+                    <li><strong>Kalkulasi Target:</strong> Sistem akan mengembalikan estimasi angka konsentrasi PM2.5 (partikel halus mematikan berukuran &lt; 2.5 mikrometer yang dapat menembus paru-paru).</li>
+                    <li><strong>Skala & Rekomendasi Kesehatan:</strong> Hasil tidak hanya berupa angka, tetapi diklasifikasikan ke dalam 4 zona ambang batas WHO (🟢 Sehat, 🟡 Sedang, 🟠 Kurang Sehat, 🔴 Berbahaya), lengkap dengan instruksi pencegahan medis (seperti kewajiban masker N95 atau penggunaan <em>Air Purifier</em>).</li>
+                </ul>
+            </div>
         </div>
         
         <div class="guide-card" style="border-left-color: #fb923c;">
             <div class="card-title">
                 {get_svg_icon("info", 20, "#fb923c")}
-                <span>4. Eksplorasi Model & Alur Data</span>
+                <span>4. Eksplorasi Model & Alur Data (Data Science Mode)</span>
             </div>
-            <p style="font-size:0.88rem; color:#cbd5e1; line-height:1.6; margin:0;">
-                Buka halaman <strong>Alur & Proses Data</strong> untuk menjalankan simulasi pemrosesan dataset WHO step-by-step secara interaktif serta menganalisis performa model.
-            </p>
+            <div style="font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
+                <p style="margin-top:0;">Dashboard AirSense tidak hanya berfungsi sebagai alat tebak, tetapi juga sarana edukasi transparan. Buka menu <strong>Alur & Proses Data</strong> di sidebar samping untuk masuk ke "dapur" pemrosesan kami.</p>
+                <ul style="margin-bottom:0; padding-left:20px; color:#94a3b8;">
+                    <li><strong>Exploratory Data Analysis (EDA):</strong> Jalankan simulasi interaktif untuk melihat grafik distribusi polusi global, penanganan <em>missing values</em>, hingga pemetaan matriks korelasi antar fitur.</li>
+                    <li><strong>Evaluasi Transparan:</strong> Lihat langsung bukti performa model melalui visualisasi <em>Actual vs Predicted</em>, sebaran nilai error (residu), dan grafik <em>Feature Importance</em> yang membuktikan metrik apa yang paling mendikte tingkat polusi.</li>
+                </ul>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         
