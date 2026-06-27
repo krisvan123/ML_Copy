@@ -612,29 +612,25 @@ elif menu == "Demo Kasus Nyata":
     MODEL_COMPARISON = {
         "Linear Regression":    {"r2": 0.6210, "rmse": 6.45, "mae": 4.82, "kecepatan": "⚡ Sangat Cepat",  "kompleksitas": "Rendah"},
         "Ridge Regression":     {"r2": 0.6212, "rmse": 6.45, "mae": 4.80, "kecepatan": "⚡ Sangat Cepat",  "kompleksitas": "Rendah"},
-        "Decision Tree":        {"r2": 0.7850, "rmse": 4.85, "mae": 2.95, "kecepatan": "🚀 Cepat",         "kompleksitas": "Sedang"},
+        "Decision Tree":        {"r2": 0.7850, "rmse": 4.85, "mae": 2.95, "kecepatan": "🚀 Cepat",          "kompleksitas": "Sedang"},
         "Random Forest":        {"r2": 0.8900, "rmse": 2.68, "mae": 1.75, "kecepatan": "🐢 Sedang",        "kompleksitas": "Tinggi"},
         "Gradient Boosting":    {"r2": 0.8850, "rmse": 2.78, "mae": 1.82, "kecepatan": "🐢 Sedang-Lambat", "kompleksitas": "Tinggi"},
-    }
-    SIMULATED_MULTIPLIERS = {
-        "Linear Regression": 1.35,
-        "Ridge Regression": 1.34,
-        "Decision Tree": 1.12,
-        "Gradient Boosting": 1.04,
     }
 
     # Tampilkan tabel perbandingan model
     with st.expander("📊 Lihat Tabel Perbandingan Semua Model ML (klik untuk expand)", expanded=False):
         st.markdown('<div class="section-title" style="font-size:1.2rem;">Komparasi Performa 5 Model Regresi</div>', unsafe_allow_html=True)
         
-        table_html = """
+        # Menggunakan dedent() agar spasi di kiri tidak dianggap sebagai code block
+        table_html = dedent("""
         <table class="model-table">
             <thead><tr>
                 <th>Model</th><th>R² Score</th><th>RMSE (µg/m³)</th><th>MAE (µg/m³)</th>
                 <th>Kecepatan</th><th>Kompleksitas</th><th>Status</th>
             </tr></thead>
             <tbody>
-        """
+        """)
+        
         best_model = "Random Forest"
         for name, m in MODEL_COMPARISON.items():
             is_best = name == best_model
@@ -643,7 +639,9 @@ elif menu == "Demo Kasus Nyata":
                 '<span class="badge badge-good">Baik</span>' if m["r2"] > 0.78 else '<span class="badge badge-poor">Kurang</span>'
             )
             name_display = f"<strong>{name}</strong>" if is_best else name
-            table_html += f"""
+            
+            # Setiap baris juga dibungkus dedent agar rapi
+            table_html += dedent(f"""
             <tr class="{row_class}">
                 <td>{name_display}</td>
                 <td><strong>{m['r2']:.4f}</strong></td>
@@ -653,7 +651,8 @@ elif menu == "Demo Kasus Nyata":
                 <td><span style="color:#94a3b8;font-size:0.8rem;">{m['kompleksitas']}</span></td>
                 <td>{badge}</td>
             </tr>
-            """
+            """)
+            
         table_html += "</tbody></table>"
         st.markdown(table_html, unsafe_allow_html=True)
         
@@ -675,6 +674,8 @@ elif menu == "Demo Kasus Nyata":
             </p>
         </div>
         """, unsafe_allow_html=True)
+
+    # ... (Sisa kode untuk menampilkan kota/grafik tetap sama) ...
 
     st.markdown('<div class="section-title" style="margin-top:20px;">Pilih Kota untuk Dianalisis</div>', unsafe_allow_html=True)
     
