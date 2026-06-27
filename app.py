@@ -495,15 +495,6 @@ def load_raw_data():
 
 df_data = load_raw_data()
 
-# ── MENU UTAMA PADA SIDEBAR ───────────────────────────────────────
-with st.sidebar:
-    st.markdown("""
-    <div style="text-align:center; padding:15px 0 25px 0;">
-        <h1 style="font-family: 'Poppins', sans-serif; font-size: 1.7rem; font-weight: 700; background: linear-gradient(90deg, #64d2ff, #a180ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0 0 0;">AirSense</h1>
-        <p style="font-size: 0.78rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin: 5px 0 0 0;">Air Quality Predictor copy</p>
-    </div>
-    """, unsafe_allow_html=True)
-
     # ── MENU UTAMA PADA SIDEBAR ───────────────────────────────────────
 with st.sidebar:
     st.markdown("""
