@@ -898,42 +898,6 @@ elif menu == "Panduan & Sumber Input":
         else:
             st.warning("Gagal memuat dataset lokal `action2024/train.csv` untuk preview.")
             
-        with preview_col:
-            if df_data is not None:
-                # 1. Bagian Preview 10 Baris Pertama Data
-                html_table = df_data.head(10).to_html(classes='table', border=0, justify='left', index=False)
-                
-                # Menggabungkan container, judul, dan tabel dalam SATU st.markdown
-                st.markdown(f"""
-                <div class="dashboard-card">
-                    <div class="card-title">{get_svg_icon("success", 20, "#10b981")} <span>Preview 10 Baris Pertama Data</span></div>
-                    <div style="overflow-x: auto; color: #e2e8f0; font-size: 0.85rem; margin-top: 15px;">
-                        <style>
-                            .custom-table th, .custom-table td {{ border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px; }}
-                            .custom-table th {{ color: #64d2ff; }}
-                        </style>
-                        {html_table.replace('<table border="0" class="dataframe table"', '<table class="custom-table" style="width:100%; border-collapse:collapse; text-align:left;"')}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # 2. Bagian Ringkasan Statistik
-                with st.expander("Lihat Ringkasan Statistik Deskriptif (Numeric Only)"):
-                    html_stats = df_data.describe().to_html(classes='table', border=0, justify='left')
-                    
-                    st.markdown(f"""
-                    <div class="dashboard-card" style="margin-bottom: 0px !important;">
-                        <div style="overflow-x: auto; color: #e2e8f0; font-size: 0.85rem;">
-                            <style>
-                                .custom-table th, .custom-table td {{ border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px; }}
-                                .custom-table th {{ color: #64d2ff; }}
-                            </style>
-                            {html_stats.replace('<table border="0" class="dataframe table"', '<table class="custom-table" style="width:100%; border-collapse:collapse; text-align:left;"')}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.warning("Gagal memuat dataset lokal `action2024/train.csv` untuk preview.")
 
 # ─────────────────────────────────────────────────────────────────
 # HALAMAN 3: ⚙️ ALUR & PROSES DATA (STEP-BY-STEP SIMULATION)
