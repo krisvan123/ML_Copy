@@ -831,14 +831,15 @@ elif menu == "Panduan & Sumber Input":
     with tab_source:
         st.markdown('<div class="section-title">Informasi Dataset WHO Global Ambient Air Quality</div>', unsafe_allow_html=True)
         
-        metadata_col, preview_col = st.columns([1, 1])
+        # --- BARIS 1: Metadata dan Deskripsi Berdampingan ---
+        col_meta, col_desc = st.columns([1.2, 1])
         
-        with metadata_col:
+        with col_meta:
             st.markdown(f"""
-            <div class="dashboard-card">
+            <div class="dashboard-card" style="height: 100%;">
                 <div class="card-title">{get_svg_icon("map", 20, "#64d2ff")} <span>Spesifikasi Metadata</span></div>
                 <table style="width:100%; border-collapse: collapse; font-size:0.9rem; color:#cbd5e1;">
-                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:10px 0; font-weight:600; color:#64d2ff;">Nama Dataset</td><td style="padding:10px 0;">WHO Global Ambient Air Quality Database</td></tr>
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:10px 0; font-weight:600; color:#64d2ff;">Nama Dataset</td><td style="padding:10px 0;">WHO Global Ambient Air Quality</td></tr>
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:10px 0; font-weight:600; color:#64d2ff;">Format File</td><td style="padding:10px 0;">Comma Separated Value (.csv)</td></tr>
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:10px 0; font-weight:600; color:#64d2ff;">Jumlah Record</td><td style="padding:10px 0;">25,999 Baris</td></tr>
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.05);"><td style="padding:10px 0; font-weight:600; color:#64d2ff;">Jumlah Fitur</td><td style="padding:10px 0;">9 Fitur Prediktor</td></tr>
@@ -847,10 +848,55 @@ elif menu == "Panduan & Sumber Input":
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown("""
-            **Deskripsi Dataset:**
-            Database ini berisikan data historis pemantauan kualitas udara global dari stasiun pengukuran di berbagai kota dunia. Fitur mencakup letak geografis (garis lintang/bujur), demografis (populasi), status pos, tahun pemantauan, regional organisasi kesehatan dunia (WHO), serta polutan partikulat PM10 dan gas kimia NO₂.
-            """)
+        with col_desc:
+            st.markdown(f"""
+            <div class="dashboard-card" style="height: 100%;">
+                <div class="card-title">{get_svg_icon("info", 20, "#fb923c")} <span>Konteks Dataset</span></div>
+                <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6; text-align: justify; margin-top: 10px;">
+                Database ini merupakan kompilasi data historis pemantauan kualitas udara dari berbagai stasiun pengukuran di seluruh dunia.
+                <br><br>
+                Fitur di dalamnya mencakup metrik spasial (lintang/bujur), profil demografis (populasi), status pelaporan, serta konsentrasi polutan partikulat (PM10) dan emisi gas kimia (NO₂). Data ini dirancang khusus untuk melatih model <em>Machine Learning</em> dalam memprediksi kadar PM2.5 secara global.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
+        
+        # --- BARIS 2: Preview Data (Lebar Penuh / Full Width) ---
+        if df_data is not None:
+            # 1. Tabel Preview
+            html_table = df_data.head(10).to_html(classes='table', border=0, justify='left', index=False)
+            
+            st.markdown(f"""
+            <div class="dashboard-card">
+                <div class="card-title">{get_svg_icon("success", 20, "#10b981")} <span>Preview 10 Baris Pertama Data</span></div>
+                <div style="overflow-x: auto; color: #e2e8f0; font-size: 0.85rem; margin-top: 15px;">
+                    <style>
+                        .custom-table th, .custom-table td {{ border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px; }}
+                        .custom-table th {{ color: #64d2ff; }}
+                    </style>
+                    {html_table.replace('<table border="0" class="dataframe table"', '<table class="custom-table" style="width:100%; border-collapse:collapse; text-align:left;"')}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 2. Tabel Statistik (Expander)
+            with st.expander("Lihat Ringkasan Statistik Deskriptif (Numeric Only)"):
+                html_stats = df_data.describe().to_html(classes='table', border=0, justify='left')
+                
+                st.markdown(f"""
+                <div class="dashboard-card" style="margin-bottom: 0px !important;">
+                    <div style="overflow-x: auto; color: #e2e8f0; font-size: 0.85rem;">
+                        <style>
+                            .custom-table th, .custom-table td {{ border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px; }}
+                            .custom-table th {{ color: #64d2ff; }}
+                        </style>
+                        {html_stats.replace('<table border="0" class="dataframe table"', '<table class="custom-table" style="width:100%; border-collapse:collapse; text-align:left;"')}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.warning("Gagal memuat dataset lokal `action2024/train.csv` untuk preview.")
             
         with preview_col:
             if df_data is not None:
