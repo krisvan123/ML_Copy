@@ -534,22 +534,21 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
     
-    # Informasi Kelompok
-    st.markdown("""
-    <div style="padding: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(6, 182, 212, 0.05)); border: 1px solid rgba(100, 200, 255, 0.15); border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-        <div style="font-family: 'Poppins', sans-serif; font-size: 0.72rem; font-weight: 600; color: #64d2ff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px;">Kelompok Machine Learning</div>
-        
-        <div style="margin-bottom: 12px;">
-            <div style="font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; color: #ffffff;">Kristian Novan</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;">2802458560</div>
-        </div>
-        
-        <div>
-            <div style="font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; color: #ffffff;">Andrew Ong</div>
-            <div style="font-size: 0.75rem; color: #94a3b8; font-family: monospace;">2802420561</div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # INFORMASI KELOMPOK (Anti-Error Auto-Indent)
+    html_kelompok = (
+        "<div style='padding: 16px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(6, 182, 212, 0.05)); border: 1px solid rgba(100, 200, 255, 0.15); border-radius: 12px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);'>"
+        "<div style='font-family: \"Poppins\", sans-serif; font-size: 0.72rem; font-weight: 600; color: #64d2ff; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px;'>Kelompok Machine Learning</div>"
+        "<div style='margin-bottom: 12px;'>"
+        "<div style='font-family: \"Inter\", sans-serif; font-size: 0.9rem; font-weight: 600; color: #ffffff;'>Kristian Novan</div>"
+        "<div style='font-size: 0.75rem; color: #94a3b8; font-family: monospace;'>2802458560</div>"
+        "</div>"
+        "<div>"
+        "<div style='font-family: \"Inter\", sans-serif; font-size: 0.9rem; font-weight: 600; color: #ffffff;'>Andrew Ong</div>"
+        "<div style='font-size: 0.75rem; color: #94a3b8; font-family: monospace;'>2802420561</div>"
+        "</div>"
+        "</div>"
+    )
+    st.markdown(html_kelompok, unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────
 # HALAMAN 1: 🏠 BERANDA UTAMA
