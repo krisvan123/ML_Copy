@@ -450,11 +450,11 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     menu = st.radio("PILIH HALAMAN", [
-        "🏠 Beranda Utama",
-        "🧪 Demo Kasus Nyata",
-        "📖 Panduan & Sumber Input",
-        "⚙️ Alur & Proses Data",
-        "💻 Penjelasan Kode"
+        "Beranda Utama",
+        "Demo Kasus Nyata",
+        "Panduan & Sumber Input",
+        "Alur & Proses Data",
+        "Penjelasan Kode"
     ], index=0)
     
     st.markdown("<hr style='border-color:rgba(255,255,255,0.1);margin:25px 0 20px 0;'>", unsafe_allow_html=True)
