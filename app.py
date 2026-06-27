@@ -898,7 +898,7 @@ elif menu == "Panduan & Sumber Input":
 # ═══════════════════════════════════════════════════════════════════
 # HALAMAN 4: ALUR & PROSES DATA (ENHANCED)
 # ═══════════════════════════════════════════════════════════════════
-elif menu == "⚙️ Alur & Proses Data":
+elif menu == "Alur & Proses Data":
     st.markdown('<h1 class="main-title">Alur & Proses Data Science</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Jelajahi seluruh tahapan pembangunan model ML ini secara interaktif — mulai dari data mentah WHO, preprocessing, pelatihan model, hingga evaluasi akhir yang komprehensif.</p>', unsafe_allow_html=True)
 
