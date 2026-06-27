@@ -705,7 +705,44 @@ if menu == "Beranda Utama":
             
         # Tampilkan Hasil
         st.markdown('<div class="section-title">Hasil Prediksi & Analisis</div>', unsafe_allow_html=True)
-        
+        # --- KODE YANG DITAMBAHKAN: 3 KOTAK RINGKASAN INPUT ---
+        m_col1, m_col2, m_col3 = st.columns(3)
+        with m_col1:
+            st.markdown(f"""
+            <div class="dashboard-card" style="padding: 15px; margin-bottom: 20px;">
+                <div class="card-title" style="color: #64d2ff; font-size: 1rem;">🌐 Letak Geografis</div>
+                <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
+                    <b>Wilayah:</b> {who_region_label}<br>
+                    <b>Koordinat:</b> {latitude:.4f}°, {longitude:.4f}°
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with m_col2:
+            st.markdown(f"""
+            <div class="dashboard-card" style="padding: 15px; margin-bottom: 20px;">
+                <div class="card-title" style="color: #10b981; font-size: 1rem;">📊 Demografi & Pos</div>
+                <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
+                    <b>Populasi:</b> {int(population):,}<br>
+                    <b>Jml Stasiun:</b> {int(number_of_stations)} unit<br>
+                    <b>Tahun Data:</b> {int(year)}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        with m_col3:
+            pm10_text = f"{pm10:.1f} µg/m³" if not np.isnan(pm10) else "Diimputasi (Median)"
+            no2_text = f"{no2:.1f} µg/m³" if not np.isnan(no2) else "Diimputasi (Median)"
+            st.markdown(f"""
+            <div class="dashboard-card" style="padding: 15px; margin-bottom: 20px;">
+                <div class="card-title" style="color: #a180ff; font-size: 1rem;">🧪 Polutan Penunjang</div>
+                <div style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
+                    <b>PM10:</b> {pm10_text}<br>
+                    <b>NO₂:</b> {no2_text}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        # --- BATAS KODE YANG DITAMBAHKAN ---
         # Skala Visual Bar
         st.markdown(f"""
         <div class="aqi-scale-container">
